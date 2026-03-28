@@ -12,6 +12,7 @@ const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 
 const { username, lockedOutUser, problemUser, password } = testData.credentials;
 const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
+const { checkoutProfiles } = testData;
 
 /**
  * SauceDemo E2E Purchase Flow
@@ -49,7 +50,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
 
     // Step 6: Fill checkout details
     await checkoutPage.isLoaded();
-    await checkoutPage.fillDetails('VInoth', 'UNITED PRO tTECH', '612001');
+    await checkoutPage.fillDetails(checkoutProfiles[0].firstName, checkoutProfiles[0].lastName, checkoutProfiles[0].postalCode);
 
     // Step 7: Click Continue
     await checkoutPage.clickContinue();
@@ -86,7 +87,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
 
     // Step 6: Fill checkout details
     await checkoutPage.isLoaded();
-    await checkoutPage.fillDetails('Nakeem QA', 'Learnings', '500001');
+    await checkoutPage.fillDetails(checkoutProfiles[1].firstName, checkoutProfiles[1].lastName, checkoutProfiles[1].postalCode);
 
     // Step 7: Click Continue
     await checkoutPage.clickContinue();
@@ -178,6 +179,48 @@ test.describe('SauceDemo - Purchase Flow', () => {
     expect(firstPrice).toBe(7.99); // based on SauceLabs onesie price
   });
 
+  test('should allow sorting items from high to low price', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.sortItems('hilo');
+    
+    const firstPrice = await inventoryPage.getFirstItemPrice();
+    expect(firstPrice).toBe(49.99); // based on SauceLabs fleece jacket price
+  });
+
+  test('should allow sorting items by name (A to Z)', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.sortItems('az');
+    
+    const firstName = await inventoryPage.getFirstItemName();
+    expect(firstName).toBe('Sauce Labs Backpack');
+  });
+
+  test('should allow sorting items by name (Z to A)', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.sortItems('za');
+    
+    const firstName = await inventoryPage.getFirstItemName();
+    expect(firstName).toBe('Test.allTheThings() T-Shirt (Red)');
+  });
+
   test('should allow purchasing multiple items', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
@@ -199,7 +242,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     // Proceed to checkout
     await cartPage.proceedToCheckout();
     await checkoutPage.isLoaded();
-    await checkoutPage.fillDetails('Multi', 'User', '12345');
+    await checkoutPage.fillDetails(checkoutProfiles[2].firstName, checkoutProfiles[2].lastName, checkoutProfiles[2].postalCode);
     await checkoutPage.clickContinue();
     await checkoutPage.clickFinish();
     await checkoutPage.expectOrderConfirmed();

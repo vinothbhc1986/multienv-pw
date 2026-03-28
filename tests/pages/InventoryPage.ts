@@ -33,4 +33,8 @@ export class InventoryPage {
     const priceText = await this.page.locator('.inventory_item_price').first().innerText();
     return parseFloat(priceText.replace('$', ''));
   }
+
+  async getFirstItemName(): Promise<string> {
+    return await this.page.locator('.inventory_item_name').first().innerText();
+  }
 }

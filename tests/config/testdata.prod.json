@@ -1,4 +1,5 @@
 {
+  "baseUrl": "https://www.saucedemo.com/",
   "credentials": {
     "username": "standard_user",
     "lockedOutUser": "locked_out_user",
@@ -12,5 +13,22 @@
     "bikeLight": "Sauce Labs Bike Light",
     "onesie": "Sauce Labs Onesie",
     "testAllTheThings": "Test.allTheThings() T-Shirt (Red)"
-  }
+  },
+  "checkoutProfiles": [
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "postalCode": "12345"
+    },
+    {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "postalCode": "98765"
+    },
+    {
+      "firstName": "Alice",
+      "lastName": "Wonder",
+      "postalCode": "54321"
+    }
+  ]
 }
