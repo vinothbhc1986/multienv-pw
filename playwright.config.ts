@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const env = process.env.TEST_ENV || 'dev';
-const testDataPath = path.resolve(__dirname, 'tests', 'config', `testdata.${env}.json`);
+const testDataPath = path.resolve(__dirname, 'config', `testdata.${env}.json`);
 const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 
 /**
@@ -37,6 +37,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Run tests in headed mode */
+    headless: false,
   },
 
   /* Assertions config for visual regression testing */

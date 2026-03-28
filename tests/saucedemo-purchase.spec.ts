@@ -7,25 +7,16 @@ import fs from 'fs';
 import path from 'path';
 
 const env = process.env.TEST_ENV || 'dev';
-const testDataPath = path.resolve(__dirname, 'config', `testdata.${env}.json`);
+const testDataPath = path.resolve(__dirname, '..', 'config', `testdata.${env}.json`);
 const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 
 const { username, lockedOutUser, problemUser, password } = testData.credentials;
 const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
 const { checkoutProfiles } = testData;
 
-/**
- * SauceDemo E2E Purchase Flow
- *
- * Scenario:
- *  1. Login as standard_user
- *  2. Find "Sauce Labs Bolt T-Shirt" and add to cart
- *  3. Open cart → proceed to checkout
- *  4. Fill checkout details and complete purchase
- *  5. Assert order confirmation
- */
+
 test.describe('SauceDemo - Purchase Flow', () => {
-  test('should successfully purchase Sauce Labs Fleece Jacket', async ({ page }) => {
+  test('[TC-01] should successfully purchase Sauce Labs Fleece Jacket', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -62,7 +53,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await checkoutPage.expectOrderConfirmed();
   });
 
-  test('should successfully purchase Sauce Labs Bolt T-Shirt', async ({ page }) => {
+  test('[TC-02] should successfully purchase Sauce Labs Bolt T-Shirt', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -98,7 +89,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     // Step 9: Assert order confirmation
     await checkoutPage.expectOrderConfirmed();
   });
-  test('should allow removing an item from the cart', async ({ page }) => {
+  test('[TC-03] should allow removing an item from the cart', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -116,7 +107,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await cartPage.expectItemNotInCart(backpack);
   });
 
-  test('should allow continuing shopping from the cart', async ({ page }) => {
+  test('[TC-04] should allow continuing shopping from the cart', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -134,7 +125,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await page.screenshot({ path: `test-results/screenshots/Bike.png`, fullPage: true });
   });
 
-  test('should display error when checkout information is missing', async ({ page }) => {
+  test('[TC-05] should display error when checkout information is missing', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page); 
@@ -156,14 +147,86 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await checkoutPage.expectErrorMessage('Error: First Name is required');
   });
 
-  test('should display error message for locked out user', async ({ page }) => {
+  test('[TC-06] should display error when checkout last name is missing', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+    const cartPage = new CartPage(page); 
+    const checkoutPage = new CheckoutPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+    
+    await inventoryPage.addProductToCart(fleeceJacket);
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+    
+    await cartPage.proceedToCheckout();
+    await checkoutPage.isLoaded();
+    
+    await checkoutPage.fillDetails(checkoutProfiles[0].firstName, '', '');
+    await checkoutPage.clickContinue();
+    await checkoutPage.expectErrorMessage('Error: Last Name is required');
+  });
+
+  test('[TC-07] should display error when checkout postal code is missing', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+    const cartPage = new CartPage(page); 
+    const checkoutPage = new CheckoutPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+    
+    await inventoryPage.addProductToCart(fleeceJacket);
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+    
+    await cartPage.proceedToCheckout();
+    await checkoutPage.isLoaded();
+    
+    await checkoutPage.fillDetails(checkoutProfiles[0].firstName, checkoutProfiles[0].lastName, '');
+    await checkoutPage.clickContinue();
+    await checkoutPage.expectErrorMessage('Error: Postal Code is required');
+  });
+
+  test('[TC-08] should display error message for locked out user', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(lockedOutUser, password);
     await loginPage.expectErrorMessage('Epic sadface: Sorry, this user has been locked out.');
   });
 
-  test('should allow sorting items from low to high price', async ({ page }) => {
+  test('[TC-09] should display error when logging in with invalid username', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login('invalid_user', password);
+    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+  });
+
+  test('[TC-10] should display error when logging in with invalid password', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(username, 'invalid_password');
+    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+  });
+
+  test('[TC-11] should display error when logging in without username', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login('', password);
+    await loginPage.expectErrorMessage('Epic sadface: Username is required');
+  });
+
+  test('[TC-12] should display error when logging in without password', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(username, '');
+    await loginPage.expectErrorMessage('Epic sadface: Password is required');
+  });
+
+  test('[TC-13] should allow sorting items from low to high price', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
 
@@ -179,7 +242,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     expect(firstPrice).toBe(7.99); // based on SauceLabs onesie price
   });
 
-  test('should allow sorting items from high to low price', async ({ page }) => {
+  test('[TC-14] should allow sorting items from high to low price', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
 
@@ -193,7 +256,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     expect(firstPrice).toBe(49.99); // based on SauceLabs fleece jacket price
   });
 
-  test('should allow sorting items by name (A to Z)', async ({ page }) => {
+  test('[TC-15] should allow sorting items by name (A to Z)', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
 
@@ -207,7 +270,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     expect(firstName).toBe('Sauce Labs Backpack');
   });
 
-  test('should allow sorting items by name (Z to A)', async ({ page }) => {
+  test('[TC-16] should allow sorting items by name (Z to A)', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
 
@@ -221,7 +284,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     expect(firstName).toBe('Test.allTheThings() T-Shirt (Red)');
   });
 
-  test('should allow purchasing multiple items', async ({ page }) => {
+  test('[TC-17] should allow purchasing multiple items', async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
@@ -246,5 +309,32 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await checkoutPage.clickContinue();
     await checkoutPage.clickFinish();
     await checkoutPage.expectOrderConfirmed();
+  });
+
+  test('[TC-18] should handle XSS injection attempts in login safely', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const xssPayload = '<script>alert("xss")</script>';
+
+    let xssExecuted = false;
+    page.on('dialog', async dialog => {
+      xssExecuted = true;
+      await dialog.dismiss();
+    });
+
+    await loginPage.goto();
+    await loginPage.login(xssPayload, password);
+    
+    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+    expect(xssExecuted).toBe(false);
+  });
+
+  test('[TC-19] should handle SQL injection attempts in login safely', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const sqlPayload = "' OR '1'='1";
+
+    await loginPage.goto();
+    await loginPage.login(sqlPayload, password);
+    
+    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
   });
 });
