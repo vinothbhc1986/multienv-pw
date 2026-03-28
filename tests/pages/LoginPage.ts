@@ -25,4 +25,10 @@ export class LoginPage {
     await this.passwordInput.fill(password);
     await this.loginButton.click();
   }
+
+  async expectErrorMessage(message: string) {
+    const errorElement = this.page.locator('[data-test="error"]');
+    await expect(errorElement).toBeVisible();
+    await expect(errorElement).toHaveText(message);
+  }
 }

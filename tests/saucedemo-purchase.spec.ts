@@ -3,10 +3,15 @@ import { LoginPage } from './pages/LoginPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
-import testData from './config/testdata.json';
+import fs from 'fs';
+import path from 'path';
 
-const { username, password } = testData.credentials;
-const { fleeceJacket, boltTShirt, backpack, bikeLight } = testData.products;
+const env = process.env.TEST_ENV || 'dev';
+const testDataPath = path.resolve(__dirname, 'config', `testdata.${env}.json`);
+const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
+
+const { username, lockedOutUser, problemUser, password } = testData.credentials;
+const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
 
 /**
  * SauceDemo E2E Purchase Flow
@@ -148,5 +153,55 @@ test.describe('SauceDemo - Purchase Flow', () => {
     // Click continue without filling details
     await checkoutPage.clickContinue();
     await checkoutPage.expectErrorMessage('Error: First Name is required');
+  });
+
+  test('should display error message for locked out user', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(lockedOutUser, password);
+    await loginPage.expectErrorMessage('Epic sadface: Sorry, this user has been locked out.');
+  });
+
+  test('should allow sorting items from low to high price', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+
+    // Sort by price (low to high) -> value is 'lohi' based on SauceDemo dropdown
+    await inventoryPage.sortItems('lohi');
+    
+    // Verify first item price
+    const firstPrice = await inventoryPage.getFirstItemPrice();
+    expect(firstPrice).toBe(7.99); // based on SauceLabs onesie price
+  });
+
+  test('should allow purchasing multiple items', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
+
+    await loginPage.goto();
+    await loginPage.login(username, password);
+    await inventoryPage.isLoaded();
+
+    // Add multiple items
+    await inventoryPage.addProductToCart(fleeceJacket);
+    await inventoryPage.addProductToCart(onesie);
+    await inventoryPage.addProductToCart(testAllTheThings);
+
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+
+    // Proceed to checkout
+    await cartPage.proceedToCheckout();
+    await checkoutPage.isLoaded();
+    await checkoutPage.fillDetails('Multi', 'User', '12345');
+    await checkoutPage.clickContinue();
+    await checkoutPage.clickFinish();
+    await checkoutPage.expectOrderConfirmed();
   });
 });

@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test:dev": "npx cross-env TEST_ENV=dev playwright test",
+    "test:stage": "npx cross-env TEST_ENV=stage playwright test",
+    "test:prod": "npx cross-env TEST_ENV=prod playwright test"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -11,6 +15,7 @@
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.3",
+    "cross-env": "^10.1.0",
     "nyc": "^18.0.0"
   }
 }

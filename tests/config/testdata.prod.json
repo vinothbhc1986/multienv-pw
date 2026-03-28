@@ -1,0 +1,16 @@
+{
+  "credentials": {
+    "username": "standard_user",
+    "lockedOutUser": "locked_out_user",
+    "problemUser": "problem_user",
+    "password": "secret_sauce"
+  },
+  "products": {
+    "fleeceJacket": "Sauce Labs Fleece Jacket",
+    "boltTShirt": "Sauce Labs Bolt T-Shirt",
+    "backpack": "Sauce Labs Backpack",
+    "bikeLight": "Sauce Labs Bike Light",
+    "onesie": "Sauce Labs Onesie",
+    "testAllTheThings": "Test.allTheThings() T-Shirt (Red)"
+  }
+}

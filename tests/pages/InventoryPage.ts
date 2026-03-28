@@ -24,4 +24,13 @@ export class InventoryPage {
   async goToCart() {
     await this.cartIcon.click();
   }
+
+  async sortItems(option: string) {
+    await this.page.locator('.product_sort_container').selectOption(option);
+  }
+
+  async getFirstItemPrice(): Promise<number> {
+    const priceText = await this.page.locator('.inventory_item_price').first().innerText();
+    return parseFloat(priceText.replace('$', ''));
+  }
 }
