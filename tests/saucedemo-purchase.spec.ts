@@ -13,6 +13,7 @@ const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 const { username, lockedOutUser, problemUser, password } = testData.credentials;
 const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
 const { checkoutProfiles } = testData;
+import { ERROR_MESSAGES } from './utils/constants';
 
 
 test.describe('SauceDemo - Purchase Flow', () => {
@@ -144,7 +145,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     
     // Click continue without filling details
     await checkoutPage.clickContinue();
-    await checkoutPage.expectErrorMessage('Error: First Name is required');
+    await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutFirstNameRequired);
   });
 
   test('[TC-06] should display error when checkout last name is missing', async ({ page }) => {
@@ -166,7 +167,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     
     await checkoutPage.fillDetails(checkoutProfiles[0].firstName, '', '');
     await checkoutPage.clickContinue();
-    await checkoutPage.expectErrorMessage('Error: Last Name is required');
+    await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutLastNameRequired);
   });
 
   test('[TC-07] should display error when checkout postal code is missing', async ({ page }) => {
@@ -188,42 +189,42 @@ test.describe('SauceDemo - Purchase Flow', () => {
     
     await checkoutPage.fillDetails(checkoutProfiles[0].firstName, checkoutProfiles[0].lastName, '');
     await checkoutPage.clickContinue();
-    await checkoutPage.expectErrorMessage('Error: Postal Code is required');
+    await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutPostalCodeRequired);
   });
 
   test('[TC-08] should display error message for locked out user', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(lockedOutUser, password);
-    await loginPage.expectErrorMessage('Epic sadface: Sorry, this user has been locked out.');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.lockedOutUser);
   });
 
   test('[TC-09] should display error when logging in with invalid username', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login('invalid_user', password);
-    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
   });
 
   test('[TC-10] should display error when logging in with invalid password', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(username, 'invalid_password');
-    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
   });
 
   test('[TC-11] should display error when logging in without username', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login('', password);
-    await loginPage.expectErrorMessage('Epic sadface: Username is required');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.usernameRequired);
   });
 
   test('[TC-12] should display error when logging in without password', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login(username, '');
-    await loginPage.expectErrorMessage('Epic sadface: Password is required');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.passwordRequired);
   });
 
   test('[TC-13] should allow sorting items from low to high price', async ({ page }) => {
@@ -324,7 +325,7 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await loginPage.goto();
     await loginPage.login(xssPayload, password);
     
-    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
     expect(xssExecuted).toBe(false);
   });
 
@@ -335,6 +336,6 @@ test.describe('SauceDemo - Purchase Flow', () => {
     await loginPage.goto();
     await loginPage.login(sqlPayload, password);
     
-    await loginPage.expectErrorMessage('Epic sadface: Username and password do not match any user in this service');
+    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
   });
 });
