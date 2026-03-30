@@ -4,6 +4,7 @@ import { InventoryPage } from '../pages/InventoryPage';
 import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 
+//import {test} from '@playwright/test';
 type MyFixtures = {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;

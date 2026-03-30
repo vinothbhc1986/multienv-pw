@@ -1,6 +1,7 @@
 import { chromium, FullConfig } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { LoginPage } from './pages/LoginPage';
 
 async function globalSetup(config: FullConfig) {
   const env = process.env.TEST_ENV || 'dev';
@@ -15,10 +16,9 @@ async function globalSetup(config: FullConfig) {
   const page = await browser.newPage();
   
   await page.goto(baseURL);
-  await page.fill('[data-test="username"]', username);
-  await page.fill('[data-test="password"]', password);
-  await page.click('[data-test="login-button"]');
-  
+  const loginPage = new LoginPage(page);
+  await loginPage.login(username, password);
+
   // Wait until inventory is loaded
   await page.waitForSelector('.inventory_item');
   

@@ -31,7 +31,7 @@ test.describe('SauceDemo - Login & Negative Tests (No Auth)', () => {
 
   test('[TC-10] should display error when logging in with invalid password', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.login('standard_user', 'invalid_password');
+    await loginPage.login(testData.credentials.username, 'invalid_password');
     await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
   });
 
@@ -43,7 +43,7 @@ test.describe('SauceDemo - Login & Negative Tests (No Auth)', () => {
 
   test('[TC-12] should display error when logging in without password', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.login('standard_user', '');
+    await loginPage.login(testData.credentials.username, '');
     await loginPage.expectErrorMessage(ERROR_MESSAGES.passwordRequired);
   });
 
@@ -85,7 +85,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
       await inventoryPage.goToCart();
       await cartPage.proceedToCheckout();
       
-      await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
+      await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);// Alice, Wonder, 54321
       await checkoutPage.clickContinue();
       await checkoutPage.clickFinish();
       await checkoutPage.expectOrderConfirmed();
@@ -157,7 +157,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
   test('[TC-16] should allow sorting items by name (Z to A)', async ({ inventoryPage }) => {
     await inventoryPage.sortItems('za');
     const firstName = await inventoryPage.getFirstItemName();
-    expect(firstName).toBe('Test.allTheThings() T-Shirt (Red)');
+    expect(firstName).toBe(testAllTheThings);
   })
 
   test('[TC-17] should allow purchasing multiple items', async ({ inventoryPage, cartPage, checkoutPage }) => {
