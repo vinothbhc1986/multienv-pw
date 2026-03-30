@@ -6,9 +6,9 @@ export class LoginPage {
   readonly loginButton: Locator;
 
   constructor(private readonly page: Page) {
-    this.usernameInput = page.locator('[data-test="username"]');
-    this.passwordInput = page.locator('[data-test="password"]');
-    this.loginButton = page.locator('[data-test="login-button"]');
+    this.usernameInput = page.getByPlaceholder('Username');
+    this.passwordInput = page.getByPlaceholder('Password');
+    this.loginButton = page.getByRole('button', { name: /login/i });
   }
 
   async goto() {

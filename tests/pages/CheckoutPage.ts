@@ -10,11 +10,11 @@ export class CheckoutPage {
   readonly errorMessage: Locator;
 
   constructor(private readonly page: Page) {
-    this.firstNameInput = page.locator('[data-test="firstName"]');
-    this.lastNameInput = page.locator('[data-test="lastName"]');
-    this.postalCodeInput = page.locator('[data-test="postalCode"]');
-    this.continueButton = page.locator('[data-test="continue"]');
-    this.finishButton = page.locator('[data-test="finish"]');
+    this.firstNameInput = page.getByPlaceholder('First Name');
+    this.lastNameInput = page.getByPlaceholder('Last Name');
+    this.postalCodeInput = page.getByPlaceholder('Zip/Postal Code');
+    this.continueButton = page.getByRole('button', { name: /continue/i });
+    this.finishButton = page.getByRole('button', { name: /finish/i });
     this.confirmationHeader = page.getByText('Thank you for your order!');
     this.errorMessage = page.locator('[data-test="error"]');
   }
@@ -38,11 +38,11 @@ export class CheckoutPage {
   }
 
   async expectOrderConfirmed() {
-    await expect(this.confirmationHeader).toBeVisible();
+    await expect.soft(this.confirmationHeader).toBeVisible();
   }
 
   async expectErrorMessage(message: string) {
-    await expect(this.errorMessage).toBeVisible();
-    await expect(this.errorMessage).toHaveText(message);
+    await expect.soft(this.errorMessage).toBeVisible();
+    await expect.soft(this.errorMessage).toHaveText(message);
   }
 }

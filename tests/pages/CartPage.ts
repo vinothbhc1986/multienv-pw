@@ -25,7 +25,7 @@ export class CartPage {
 
   async removeItem(productName: string) {
     const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
-    await cartItem.locator('[data-test^="remove-"]').click();
+    await cartItem.getByRole('button', { name: /remove/i }).click();
   }
 
   async expectItemInCart(productName: string) {

@@ -5,7 +5,7 @@ export class InventoryPage {
   readonly pageTitle: Locator;
 
   constructor(private readonly page: Page) {
-    this.cartIcon = page.locator('.shopping_cart_link');
+    this.cartIcon = page.getByTestId('shopping-cart-link');
     this.pageTitle = page.getByText('Products');
   }
 
@@ -26,7 +26,7 @@ export class InventoryPage {
   }
 
   async sortItems(option: string) {
-    await this.page.locator('.product_sort_container').selectOption(option);
+    await this.page.getByRole('combobox').selectOption(option);
   }
 
   async getFirstItemPrice(): Promise<number> {

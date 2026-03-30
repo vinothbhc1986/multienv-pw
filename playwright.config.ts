@@ -18,6 +18,7 @@ const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  globalSetup: require.resolve('./tests/global-setup'),
   testDir: './tests',
   snapshotDir: './tests/snapshots',
   /* Run tests in files in parallel */
@@ -40,6 +41,12 @@ export default defineConfig({
 
     /* Run tests in headed mode */
     headless: false,
+
+    /* Use global authentication state */
+    storageState: '.auth/user.json',
+
+    /* Define the custom Test ID attribute used across the Saucedemo app */
+    testIdAttribute: 'data-test',
   },
 
   /* Assertions config for visual regression testing */
