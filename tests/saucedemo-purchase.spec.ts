@@ -1,4 +1,6 @@
-import { test, expect } from './fixtures/base';
+import { test } from './fixtures/base';
+import { expect } from '@playwright/test';
+
 import fs from 'fs';
 import path from 'path';
 import { ERROR_MESSAGES } from './utils/constants';
@@ -78,7 +80,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
 
   // Data-Driven Testing (DDT) looping through checkout profiles dynamically!
   for (const profile of checkoutProfiles) {
-    test(`[DDT] should complete purchase dynamically for ${profile.firstName}`, async ({ inventoryPage, cartPage, checkoutPage }) => {
+    test(`[TC-01] should complete purchase dynamically for ${profile.firstName}`, async ({ inventoryPage, cartPage, checkoutPage }) => {
       await inventoryPage.addProductToCart(fleeceJacket);
       await inventoryPage.goToCart();
       await cartPage.proceedToCheckout();
@@ -118,7 +120,8 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
     await inventoryPage.addProductToCart(fleeceJacket);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
-    await checkoutPage.fillDetails('First', '', '');
+    const profile = checkoutProfiles[0];
+    await checkoutPage.fillDetails(profile.firstName, '', '');
     await checkoutPage.clickContinue();
     await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutLastNameRequired);
   });
@@ -127,7 +130,8 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
     await inventoryPage.addProductToCart(fleeceJacket);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
-    await checkoutPage.fillDetails('First', 'Last', '');
+    const profile = checkoutProfiles[0];
+    await checkoutPage.fillDetails(profile.firstName, profile.lastName, '');
     await checkoutPage.clickContinue();
     await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutPostalCodeRequired);
   });
@@ -147,14 +151,14 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
   test('[TC-15] should allow sorting items by name (A to Z)', async ({ inventoryPage }) => {
     await inventoryPage.sortItems('az');
     const firstName = await inventoryPage.getFirstItemName();
-    expect(firstName).toBe('Sauce Labs Backpack');
+    expect(firstName).toBe(testData.products.backpack);
   });
 
   test('[TC-16] should allow sorting items by name (Z to A)', async ({ inventoryPage }) => {
     await inventoryPage.sortItems('za');
     const firstName = await inventoryPage.getFirstItemName();
     expect(firstName).toBe('Test.allTheThings() T-Shirt (Red)');
-  });
+  })
 
   test('[TC-17] should allow purchasing multiple items', async ({ inventoryPage, cartPage, checkoutPage }) => {
     await inventoryPage.addProductToCart(fleeceJacket);
@@ -164,7 +168,8 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
     
-    await checkoutPage.fillDetails('Multi', 'User', '12345');
+    const profile = checkoutProfiles[0];
+    await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
     await checkoutPage.clickContinue();
     await checkoutPage.clickFinish();
     await checkoutPage.expectOrderConfirmed();
