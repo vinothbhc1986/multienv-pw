@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  playwright-tests:
+    build: .
+    environment:
+      - TEST_ENV=dev
+      - CI=true
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    command: npm run test:dev
+
+  playwright-ui:
+    build: .
+    ports:
+      - "9323:9323"
+    environment:
+      - TEST_ENV=dev
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    command: npx playwright test --ui

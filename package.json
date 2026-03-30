@@ -4,9 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test": "playwright test",
     "test:dev": "npx cross-env TEST_ENV=dev playwright test",
     "test:stage": "npx cross-env TEST_ENV=stage playwright test",
-    "test:prod": "npx cross-env TEST_ENV=prod playwright test"
+    "test:prod": "npx cross-env TEST_ENV=prod playwright test",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:coverage": "nyc playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "lint": "eslint tests/**/*.ts playwright.config.ts",
+    "lint:fix": "eslint tests/**/*.ts playwright.config.ts --fix",
+    "format": "prettier --write tests/**/*.ts playwright.config.ts",
+    "format:check": "prettier --check tests/**/*.ts playwright.config.ts",
+    "install:browsers": "playwright install",
+    "update:browsers": "playwright install --force",
+    "report": "playwright show-report",
+    "clean": "rimraf test-results playwright-report .nyc_output .auth",
+    "validate:data": "node scripts/validate-test-data.js",
+    "health:check": "node scripts/health-check.js"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +37,9 @@
     "cross-env": "^10.1.0",
     "eslint": "^10.1.0",
     "eslint-plugin-playwright": "^2.10.1",
-    "nyc": "^18.0.0"
+    "nyc": "^18.0.0",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "playwright-test-coverage": "^1.2.12"
   }
 }
