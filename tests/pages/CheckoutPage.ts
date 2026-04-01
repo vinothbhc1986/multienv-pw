@@ -38,6 +38,7 @@ export class CheckoutPage {
   }
 
   async expectOrderConfirmed() {
+    // Continue execution, reports later
     await expect.soft(this.confirmationHeader).toBeVisible();
   }
 

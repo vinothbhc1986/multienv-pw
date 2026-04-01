@@ -13,11 +13,11 @@ const { lockedOutUser, password } = testData.credentials;
 const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
 const { checkoutProfiles } = testData;
 
-test.describe('SauceDemo - Login & Negative Tests (No Auth)', () => {
+test.describe('SauceDemo - Login & Negative Tests (No Auth) @regression', () => {
   // Clear authentication state for login tests
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test('[TC-08] should display error message for locked out user', async ({ loginPage }) => {
+  test('[TC-08] @smoke should display error message for locked out user', async ({ loginPage }) => {
     await loginPage.goto();
     await loginPage.login(lockedOutUser, password);
     await loginPage.expectErrorMessage(ERROR_MESSAGES.lockedOutUser);
@@ -71,7 +71,7 @@ test.describe('SauceDemo - Login & Negative Tests (No Auth)', () => {
   });
 });
 
-test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
+test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
   // We don't need to login manually here! `storageState` is applied.
   test.beforeEach(async ({ page }) => {
     // We navigate straight to inventory since we're already logged in via global Setup
@@ -80,7 +80,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
 
   // Data-Driven Testing (DDT) looping through checkout profiles dynamically!
   for (const profile of checkoutProfiles) {
-    test(`[TC-01] should complete purchase dynamically for ${profile.firstName}`, async ({ inventoryPage, cartPage, checkoutPage }) => {
+    test(`[TC-01] @smoke should complete purchase dynamically for ${profile.firstName}`, async ({ inventoryPage, cartPage, checkoutPage }) => {
       await inventoryPage.addProductToCart(fleeceJacket);
       await inventoryPage.goToCart();
       await cartPage.proceedToCheckout();
@@ -160,7 +160,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated)', () => {
     expect(firstName).toBe(testAllTheThings);
   })
 
-  test('[TC-17] should allow purchasing multiple items', async ({ inventoryPage, cartPage, checkoutPage }) => {
+  test('[TC-17] @smoke should allow purchasing multiple items', async ({ inventoryPage, cartPage, checkoutPage }) => {
     await inventoryPage.addProductToCart(fleeceJacket);
     await inventoryPage.addProductToCart(onesie);
     await inventoryPage.addProductToCart(testAllTheThings);

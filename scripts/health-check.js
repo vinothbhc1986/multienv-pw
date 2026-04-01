@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const env = process.env.TEST_ENV || 'dev';
+console.log(`🔍 Checking health of ${env} environment...`);
 const testDataPath = path.resolve(__dirname, '..', 'config', `testdata.${env}.json`);
 
 try {
