@@ -175,3 +175,21 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await checkoutPage.expectOrderConfirmed();
   });
 });
+
+test.describe('SauceDemo - Cart Persistence', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/inventory.html');
+  });
+
+  test('[TC-20] should keep cart item after navigating from cart back to inventory and return to cart', async ({ inventoryPage, cartPage }) => {
+    await inventoryPage.addProductToCart(backpack);
+    await inventoryPage.goToCart();
+    await cartPage.expectItemInCart(backpack);
+
+    await cartPage.continueShopping();
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.goToCart();
+    await cartPage.expectItemInCart(backpack);
+  });
+});
