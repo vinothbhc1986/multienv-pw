@@ -192,4 +192,40 @@ test.describe('SauceDemo - Cart Persistence', () => {
     await inventoryPage.goToCart();
     await cartPage.expectItemInCart(backpack);
   });
+  test('[TC-21] should show empty cart with zero products when nothing added', async ({ page }) => {
+  await page.goto('/cart.html');
+  await expect(page.locator('.cart_item')).toHaveCount(0);
+  await expect(page.locator('.title')).toHaveText('Your Cart');
+  });
+
+  test('[TC-22] should update cart badge count when adding/removing items', async ({ inventoryPage, cartPage, page }) => {
+    await inventoryPage.addProductToCart(bikeLight);
+    await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
+
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+    await expect(page).toHaveURL(/cart\.html$/);
+    await cartPage.removeItem(bikeLight);
+    await expect(page.locator('.shopping_cart_badge')).not.toBeVisible();
+  });
+
+    test('[TC-23] should preserve cart item when returning from checkout overview to cart', async ({ inventoryPage, cartPage, checkoutPage, page }) => {
+    await inventoryPage.addProductToCart(backpack);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+
+    const profile = checkoutProfiles[0];
+    await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
+    await checkoutPage.clickContinue();
+
+    await expect(page).toHaveURL(/checkout-step-two\.html$/);
+    await page.getByRole('button', { name: /cancel/i }).click();
+    await inventoryPage.isLoaded();
+
+    await expect(page).toHaveURL(/inventory\.html$/);
+
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+    await cartPage.expectItemInCart(backpack);
+  });
 });
