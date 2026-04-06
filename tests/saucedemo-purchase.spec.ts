@@ -193,7 +193,7 @@ test.describe('SauceDemo - Cart Persistence @regression', () => {
     await inventoryPage.expectNoCartBadge();
   });
 
-  test('[TC-23] should preserve cart item when returning from checkout overview to cart', async ({ inventoryPage, cartPage, checkoutPage }) => {
+  test('[TC-23] should preserve cart item when returning from checkout overview to cart', async ({ inventoryPage, cartPage, checkoutPage, checkoutOverviewPage }) => {
     await inventoryPage.addProductToCart(backpack);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
@@ -202,6 +202,9 @@ test.describe('SauceDemo - Cart Persistence @regression', () => {
     await checkoutPage.clickContinue();
 
     await checkoutPage.expectCheckoutStepTwoUrl();
+
+    await checkoutOverviewPage.expectCorrectTotal()
+    
     await checkoutPage.clickCancel();
     
     await inventoryPage.isLoaded();

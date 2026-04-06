@@ -1,11 +1,12 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { HeaderComponent } from './components/HeaderComponent';
 
 export class InventoryPage {
-  readonly cartIcon: Locator;
   readonly pageTitle: Locator;
+  readonly header: HeaderComponent;
 
   constructor(private readonly page: Page) {
-    this.cartIcon = page.getByTestId('shopping-cart-link');
+    this.header = new HeaderComponent(page);
     this.pageTitle = page.getByText('Products');
   }
 
@@ -30,7 +31,7 @@ export class InventoryPage {
   }
 
   async goToCart() {
-    await this.cartIcon.click();
+    await this.header.goToCart();
   }
 
   async sortItems(option: string) {
@@ -47,10 +48,10 @@ export class InventoryPage {
   }
 
   async expectCartBadgeCount(count: string) {
-    await expect(this.page.locator('.shopping_cart_badge')).toHaveText(count);
+    await expect(this.header.cartBadge).toHaveText(count);
   }
 
   async expectNoCartBadge() {
-    await expect(this.page.locator('.shopping_cart_badge')).not.toBeVisible();
+    await expect(this.header.cartBadge).not.toBeVisible();
   }
 }
