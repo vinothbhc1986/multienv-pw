@@ -55,6 +55,14 @@ export default defineConfig({
 
     /* Define the custom Test ID attribute used across the Saucedemo app */
     testIdAttribute: 'data-test',
+
+    /* Force the browser to honor reduced-motion and inject CSS to kill all transitions/animations.
+    Disabling transitions globally helps prevent flakiness in tests.
+    It should minimize animations 
+    */
+    launchOptions: {
+      args: ['--force-prefers-reduced-motion'],
+    },
   },
 
   /* Assertions config for visual regression testing */
