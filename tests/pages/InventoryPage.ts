@@ -13,6 +13,14 @@ export class InventoryPage {
     await expect(this.pageTitle).toBeVisible();
   }
 
+  async goto() {
+    await this.page.goto('/inventory.html');
+  }
+
+  async expectUrl() {
+    await expect(this.page).toHaveURL(/inventory\.html$/);
+  }
+
   async addProductToCart(productName: string) {
     const productCard = this.page
       .locator('.inventory_item')
@@ -36,5 +44,13 @@ export class InventoryPage {
 
   async getFirstItemName(): Promise<string> {
     return await this.page.locator('.inventory_item_name').first().innerText();
+  }
+
+  async expectCartBadgeCount(count: string) {
+    await expect(this.page.locator('.shopping_cart_badge')).toHaveText(count);
+  }
+
+  async expectNoCartBadge() {
+    await expect(this.page.locator('.shopping_cart_badge')).not.toBeVisible();
   }
 }

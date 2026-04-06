@@ -12,40 +12,27 @@ const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 const { lockedOutUser, password } = testData.credentials;
 const { fleeceJacket, boltTShirt, backpack, bikeLight, onesie, testAllTheThings } = testData.products;
 const { checkoutProfiles } = testData;
+const defaultProfile = checkoutProfiles[0];
 
 test.describe('SauceDemo - Login & Negative Tests (No Auth) @regression', () => {
   // Clear authentication state for login tests
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test('[TC-08] @smoke should display error message for locked out user', async ({ loginPage }) => {
-    await loginPage.goto();
-    await loginPage.login(lockedOutUser, password);
-    await loginPage.expectErrorMessage(ERROR_MESSAGES.lockedOutUser);
-  });
+  const invalidLoginScenarios = [
+    { id: 'TC-08', type: '@smoke locked out user', user: lockedOutUser, pass: password, error: ERROR_MESSAGES.lockedOutUser },
+    { id: 'TC-09', type: 'invalid user', user: 'invalid_user', pass: password, error: ERROR_MESSAGES.invalidCredentials },
+    { id: 'TC-10', type: 'invalid password', user: testData.credentials.username, pass: 'invalid_password', error: ERROR_MESSAGES.invalidCredentials },
+    { id: 'TC-11', type: 'missing username', user: '', pass: password, error: ERROR_MESSAGES.usernameRequired },
+    { id: 'TC-12', type: 'missing password', user: testData.credentials.username, pass: '', error: ERROR_MESSAGES.passwordRequired },
+  ];
 
-  test('[TC-09] should display error when logging in with invalid username', async ({ loginPage }) => {
-    await loginPage.goto();
-    await loginPage.login('invalid_user', password);
-    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
-  });
-
-  test('[TC-10] should display error when logging in with invalid password', async ({ loginPage }) => {
-    await loginPage.goto();
-    await loginPage.login(testData.credentials.username, 'invalid_password');
-    await loginPage.expectErrorMessage(ERROR_MESSAGES.invalidCredentials);
-  });
-
-  test('[TC-11] should display error when logging in without username', async ({ loginPage }) => {
-    await loginPage.goto();
-    await loginPage.login('', password);
-    await loginPage.expectErrorMessage(ERROR_MESSAGES.usernameRequired);
-  });
-
-  test('[TC-12] should display error when logging in without password', async ({ loginPage }) => {
-    await loginPage.goto();
-    await loginPage.login(testData.credentials.username, '');
-    await loginPage.expectErrorMessage(ERROR_MESSAGES.passwordRequired);
-  });
+  for (const scenario of invalidLoginScenarios) {
+    test(`[${scenario.id}] should display error for ${scenario.type}`, async ({ loginPage }) => {
+      await loginPage.goto();
+      await loginPage.login(scenario.user, scenario.pass);
+      await loginPage.expectErrorMessage(scenario.error);
+    });
+  }
 
   test('[TC-18] should handle XSS injection attempts in login safely', async ({ page, loginPage }) => {
     const xssPayload = '<script>alert("xss")</script>';
@@ -72,20 +59,17 @@ test.describe('SauceDemo - Login & Negative Tests (No Auth) @regression', () => 
 });
 
 test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
-  // We don't need to login manually here! `storageState` is applied.
-  test.beforeEach(async ({ page }) => {
-    // We navigate straight to inventory since we're already logged in via global Setup
-    await page.goto('/inventory.html');
+  test.beforeEach(async ({ inventoryPage }) => {
+    await inventoryPage.goto();
   });
 
-  // Data-Driven Testing (DDT) looping through checkout profiles dynamically!
   for (const profile of checkoutProfiles) {
     test(`[TC-01] @smoke should complete purchase dynamically for ${profile.firstName}`, async ({ inventoryPage, cartPage, checkoutPage }) => {
       await inventoryPage.addProductToCart(fleeceJacket);
       await inventoryPage.goToCart();
       await cartPage.proceedToCheckout();
       
-      await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);// Alice, Wonder, 54321
+      await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
       await checkoutPage.clickContinue();
       await checkoutPage.clickFinish();
       await checkoutPage.expectOrderConfirmed();
@@ -120,8 +104,7 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await inventoryPage.addProductToCart(fleeceJacket);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
-    const profile = checkoutProfiles[0];
-    await checkoutPage.fillDetails(profile.firstName, '', '');
+    await checkoutPage.fillDetails(defaultProfile.firstName, '', '');
     await checkoutPage.clickContinue();
     await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutLastNameRequired);
   });
@@ -130,35 +113,36 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await inventoryPage.addProductToCart(fleeceJacket);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
-    const profile = checkoutProfiles[0];
-    await checkoutPage.fillDetails(profile.firstName, profile.lastName, '');
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, '');
     await checkoutPage.clickContinue();
     await checkoutPage.expectErrorMessage(ERROR_MESSAGES.checkoutPostalCodeRequired);
   });
 
-  test('[TC-13] should allow sorting items from low to high price', async ({ inventoryPage }) => {
-    await inventoryPage.sortItems('lohi');
-    const firstPrice = await inventoryPage.getFirstItemPrice();
-    expect(firstPrice).toBe(7.99); 
-  });
+  test.describe('Sorting functionality', () => {
+    test('[TC-13] should allow sorting items from low to high price', async ({ inventoryPage }) => {
+      await inventoryPage.sortItems('lohi');
+      const firstPrice = await inventoryPage.getFirstItemPrice();
+      expect(firstPrice).toBe(7.99); 
+    });
 
-  test('[TC-14] should allow sorting items from high to low price', async ({ inventoryPage }) => {
-    await inventoryPage.sortItems('hilo');
-    const firstPrice = await inventoryPage.getFirstItemPrice();
-    expect(firstPrice).toBe(49.99);
-  });
+    test('[TC-14] should allow sorting items from high to low price', async ({ inventoryPage }) => {
+      await inventoryPage.sortItems('hilo');
+      const firstPrice = await inventoryPage.getFirstItemPrice();
+      expect(firstPrice).toBe(49.99);
+    });
 
-  test('[TC-15] should allow sorting items by name (A to Z)', async ({ inventoryPage }) => {
-    await inventoryPage.sortItems('az');
-    const firstName = await inventoryPage.getFirstItemName();
-    expect(firstName).toBe(testData.products.backpack);
-  });
+    test('[TC-15] should allow sorting items by name (A to Z)', async ({ inventoryPage }) => {
+      await inventoryPage.sortItems('az');
+      const firstName = await inventoryPage.getFirstItemName();
+      expect(firstName).toBe(testData.products.backpack);
+    });
 
-  test('[TC-16] should allow sorting items by name (Z to A)', async ({ inventoryPage }) => {
-    await inventoryPage.sortItems('za');
-    const firstName = await inventoryPage.getFirstItemName();
-    expect(firstName).toBe(testAllTheThings);
-  })
+    test('[TC-16] should allow sorting items by name (Z to A)', async ({ inventoryPage }) => {
+      await inventoryPage.sortItems('za');
+      const firstName = await inventoryPage.getFirstItemName();
+      expect(firstName).toBe(testAllTheThings);
+    });
+  });
 
   test('[TC-17] @smoke should allow purchasing multiple items', async ({ inventoryPage, cartPage, checkoutPage }) => {
     await inventoryPage.addProductToCart(fleeceJacket);
@@ -168,17 +152,16 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
     
-    const profile = checkoutProfiles[0];
-    await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
     await checkoutPage.clickContinue();
     await checkoutPage.clickFinish();
     await checkoutPage.expectOrderConfirmed();
   });
 });
 
-test.describe('SauceDemo - Cart Persistence', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/inventory.html');
+test.describe('SauceDemo - Cart Persistence @regression', () => {
+  test.beforeEach(async ({ inventoryPage }) => {
+    await inventoryPage.goto();
   });
 
   test('[TC-20] should keep cart item after navigating from cart back to inventory and return to cart', async ({ inventoryPage, cartPage }) => {
@@ -192,37 +175,37 @@ test.describe('SauceDemo - Cart Persistence', () => {
     await inventoryPage.goToCart();
     await cartPage.expectItemInCart(backpack);
   });
-  test('[TC-21] should show empty cart with zero products when nothing added', async ({ page }) => {
-  await page.goto('/cart.html');
-  await expect(page.locator('.cart_item')).toHaveCount(0);
-  await expect(page.locator('.title')).toHaveText('Your Cart');
+
+  test('[TC-21] should show empty cart with zero products when nothing added', async ({ cartPage }) => {
+    await cartPage.goto();
+    await cartPage.expectEmptyCart();
+    await cartPage.isLoaded();
   });
 
-  test('[TC-22] should update cart badge count when adding/removing items', async ({ inventoryPage, cartPage, page }) => {
+  test('[TC-22] should update cart badge count when adding/removing items', async ({ inventoryPage, cartPage }) => {
     await inventoryPage.addProductToCart(bikeLight);
-    await expect(page.locator('.shopping_cart_badge')).toHaveText('1');
+    await inventoryPage.expectCartBadgeCount('1');
 
     await inventoryPage.goToCart();
     await cartPage.isLoaded();
-    await expect(page).toHaveURL(/cart\.html$/);
+    await cartPage.expectUrl();
     await cartPage.removeItem(bikeLight);
-    await expect(page.locator('.shopping_cart_badge')).not.toBeVisible();
+    await inventoryPage.expectNoCartBadge();
   });
 
-    test('[TC-23] should preserve cart item when returning from checkout overview to cart', async ({ inventoryPage, cartPage, checkoutPage, page }) => {
+  test('[TC-23] should preserve cart item when returning from checkout overview to cart', async ({ inventoryPage, cartPage, checkoutPage }) => {
     await inventoryPage.addProductToCart(backpack);
     await inventoryPage.goToCart();
     await cartPage.proceedToCheckout();
 
-    const profile = checkoutProfiles[0];
-    await checkoutPage.fillDetails(profile.firstName, profile.lastName, profile.postalCode);
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
     await checkoutPage.clickContinue();
 
-    await expect(page).toHaveURL(/checkout-step-two\.html$/);
-    await page.getByRole('button', { name: /cancel/i }).click();
+    await checkoutPage.expectCheckoutStepTwoUrl();
+    await checkoutPage.clickCancel();
+    
     await inventoryPage.isLoaded();
-
-    await expect(page).toHaveURL(/inventory\.html$/);
+    await inventoryPage.expectUrl();
 
     await inventoryPage.goToCart();
     await cartPage.isLoaded();

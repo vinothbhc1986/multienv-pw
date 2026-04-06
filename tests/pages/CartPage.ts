@@ -37,4 +37,16 @@ export class CartPage {
     const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
     await expect(cartItem).toHaveCount(0);
   }
+
+  async goto() {
+    await this.page.goto('/cart.html');
+  }
+
+  async expectEmptyCart() {
+    await expect(this.page.locator('.cart_item')).toHaveCount(0);
+  }
+
+  async expectUrl() {
+    await expect(this.page).toHaveURL(/cart\.html$/);
+  }
 }

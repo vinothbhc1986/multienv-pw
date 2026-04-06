@@ -8,6 +8,7 @@ export class CheckoutPage {
   readonly finishButton: Locator;
   readonly confirmationHeader: Locator;
   readonly errorMessage: Locator;
+  readonly cancelButton: Locator;
 
   constructor(private readonly page: Page) {
     this.firstNameInput = page.getByPlaceholder('First Name');
@@ -17,6 +18,7 @@ export class CheckoutPage {
     this.finishButton = page.getByRole('button', { name: /finish/i });
     this.confirmationHeader = page.getByText('Thank you for your order!');
     this.errorMessage = page.locator('[data-test="error"]');
+    this.cancelButton = page.getByRole('button', { name: /cancel/i });
   }
 
   async isLoaded() {
@@ -42,8 +44,16 @@ export class CheckoutPage {
     await expect.soft(this.confirmationHeader).toBeVisible();
   }
 
+  async clickCancel() {
+    await this.cancelButton.click();
+  }
+
   async expectErrorMessage(message: string) {
     await expect.soft(this.errorMessage).toBeVisible();
     await expect.soft(this.errorMessage).toHaveText(message);
+  }
+
+  async expectCheckoutStepTwoUrl() {
+    await expect(this.page).toHaveURL(/checkout-step-two\.html$/);
   }
 }
