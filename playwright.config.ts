@@ -6,6 +6,9 @@ const env = process.env.TEST_ENV || 'dev';
 const testDataPath = path.resolve(__dirname, 'config', `testdata.${env}.json`);
 const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
 
+const headless = testData.HEADLESS;
+// || process.env.HEADLESS === '1' || !!process.env.CI;
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -21,6 +24,7 @@ export default defineConfig({
   globalSetup: require.resolve('./tests/global-setup'),
   testDir: './tests',
   snapshotDir: './tests/snapshots',
+  timeout: 60_000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -30,8 +34,8 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI
-    ? [['html'], ['junit', { outputFile: 'test-results/junit.xml' }]]
+  reporter: process.env.CI || process.env.CLAUDE
+    ? [['line'], ['junit', { outputFile: 'test-results/junit.xml' }], ['html', { open: 'never' }]]
     : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -41,14 +45,18 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
+    /* Give slow CI/network a bit more breathing room */
+    navigationTimeout: 45_000,
+    actionTimeout: 30_000,
+
     /* Capture screenshot only when test fails */
     screenshot: 'only-on-failure',
 
     /* Record video only when test fails */
     video: 'retain-on-failure',
 
-    /* Run tests in headed mode */
-    headless: false,
+    /* Headless in CI by default (override via HEADLESS) */
+    headless: headless,
 
     /* Use global authentication state */
     storageState: '.auth/user.json',
@@ -56,10 +64,7 @@ export default defineConfig({
     /* Define the custom Test ID attribute used across the Saucedemo app */
     testIdAttribute: 'data-test',
 
-    /* Force the browser to honor reduced-motion and inject CSS to kill all transitions/animations.
-    Disabling transitions globally helps prevent flakiness in tests.
-    It should minimize animations 
-    */
+    /* Cross-browser reduced motion to minimize animations */
     launchOptions: {
       args: ['--force-prefers-reduced-motion'],
     },

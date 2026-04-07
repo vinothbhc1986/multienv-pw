@@ -4,10 +4,14 @@ import { HeaderComponent } from './components/HeaderComponent';
 export class InventoryPage {
   readonly pageTitle: Locator;
   readonly header: HeaderComponent;
+  readonly itemNames: Locator;
+  readonly itemPrices: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new HeaderComponent(page);
     this.pageTitle = page.getByText('Products');
+    this.itemNames = page.locator('.inventory_item_name');
+    this.itemPrices = page.locator('.inventory_item_price');
   }
 
   async isLoaded() {
@@ -39,12 +43,47 @@ export class InventoryPage {
   }
 
   async getFirstItemPrice(): Promise<number> {
-    const priceText = await this.page.locator('.inventory_item_price').first().innerText();
+    const priceText = await this.itemPrices.first().innerText();
     return parseFloat(priceText.replace('$', ''));
   }
 
   async getFirstItemName(): Promise<string> {
-    return await this.page.locator('.inventory_item_name').first().innerText();
+    return await this.itemNames.first().innerText();
+  }
+
+  async getAllItemPrices(): Promise<number[]> {
+    const pricesText = await this.itemPrices.allInnerTexts();
+    return pricesText.map(p => parseFloat(p.replace('$', '')));
+  }
+
+  async getAllItemNames(): Promise<string[]> {
+    return this.itemNames.allInnerTexts();
+  }
+
+  async openItemDetails(productName: string) {
+    const itemLink = this.itemNames.filter({ hasText: productName }).first();
+    await expect(itemLink).toHaveText(productName);
+    await itemLink.click();
+  }
+
+  async expectAddToCartButtonVisible(productName: string) {
+    const productCard = this.page.locator('.inventory_item').filter({ hasText: productName });
+    await expect(productCard.getByRole('button', { name: /add to cart/i })).toBeVisible();
+  }
+
+  async expectRemoveButtonVisible(productName: string) {
+    const productCard = this.page.locator('.inventory_item').filter({ hasText: productName });
+    await expect(productCard.getByRole('button', { name: /remove/i })).toBeVisible();
+  }
+
+  async removeProductFromCart(productName: string) {
+    const productCard = this.page.locator('.inventory_item').filter({ hasText: productName });
+    await expect(productCard).toBeVisible();
+    await productCard.getByRole('button', { name: /remove/i }).click();
+  }
+
+  async expectDetailsUrl() {
+    await expect(this.page).toHaveURL(/inventory-item\.html\?id=\d+$/);
   }
 
   async expectCartBadgeCount(count: string) {

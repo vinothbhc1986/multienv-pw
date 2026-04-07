@@ -1,5 +1,6 @@
 {
   "baseUrl": "https://www.saucedemo.com/",
+  "HEADLESS": true,
   "credentials": {
     "username": "performance_glitch_user",
     "lockedOutUser": "locked_out_user",

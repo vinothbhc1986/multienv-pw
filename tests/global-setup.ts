@@ -5,7 +5,6 @@ import { LoginPage } from './pages/LoginPage';
 
 async function globalSetup(config: FullConfig) {
   const env = process.env.TEST_ENV || 'dev';
-  console.log('env is: ',env);
   const testDataPath = path.resolve(__dirname, '..', 'config', `testdata.${env}.json`);
   const testData = JSON.parse(fs.readFileSync(testDataPath, 'utf8'));
   
@@ -15,7 +14,7 @@ async function globalSetup(config: FullConfig) {
   const browser = await chromium.launch();
   const page = await browser.newPage();
   
-  await page.goto(baseURL);
+  await page.goto(baseURL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   const loginPage = new LoginPage(page);
   await loginPage.login(username, password);
 

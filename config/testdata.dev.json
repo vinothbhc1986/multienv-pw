@@ -1,5 +1,6 @@
 {
   "baseUrl": "https://www.saucedemo.com/",
+  "HEADLESS": false,
   "credentials": {
     "username": "standard_user",
     "lockedOutUser": "locked_out_user",
