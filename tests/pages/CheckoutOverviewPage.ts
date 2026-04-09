@@ -57,8 +57,6 @@ export class CheckoutOverviewPage {
     const itemPrices = await this.getItemPrices();
     const subtotal = itemPrices.reduce((sum, p) => sum + p, 0);
     const displayedSubtotal = await this.getSubtotal();
-    console.log('displayedSubtotal',displayedSubtotal);
-    console.log('subtotal',subtotal);
     expect(displayedSubtotal).toBeCloseTo(subtotal, 2);
 
     const tax = await this.getTax();

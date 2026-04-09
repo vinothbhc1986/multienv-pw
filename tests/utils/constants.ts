@@ -7,3 +7,23 @@ export const ERROR_MESSAGES = {
   usernameRequired: 'Epic sadface: Username is required',
   passwordRequired: 'Epic sadface: Password is required',
 };
+export const UNAUTHENTICATED_ROUTE_CASES = [
+  {
+    url: 'checkout-step-one.html',
+  },
+  {
+    url: 'checkout-step-two.html',
+  },
+  {
+    url: 'checkout-complete.html',
+  },
+  {
+    url: 'inventory-item.html?id=0',
+  },
+  {
+    url: 'cart.html'
+  },
+  {
+    url : 'checkout-complete.html'
+  }
+];

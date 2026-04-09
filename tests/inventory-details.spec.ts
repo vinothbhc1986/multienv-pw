@@ -49,5 +49,30 @@ test.describe('SauceDemo - Inventory Item Details @regression', () => {
     await inventoryPage.removeProductFromCart(productName);
     await inventoryPage.expectAddToCartButtonVisible(productName);
   });
+
+  test('[TC-38] should reflect details add-to-cart in cart badge and cart contents', async ({
+    page,
+    inventoryPage,
+    cartPage,
+  }) => {
+    const testData = loadTestData();
+    const productName = testData.products.backpack;
+
+    await inventoryPage.goto();
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.expectNoCartBadge();
+    await inventoryPage.openItemDetails(productName);
+    await inventoryPage.expectDetailsUrl();
+
+    await page.getByRole('button', { name: /add to cart/i }).click();
+
+    // Badge appears after adding
+    await inventoryPage.expectCartBadgeCount('1');
+
+    await inventoryPage.goToCart();
+    await cartPage.isLoaded();
+    await cartPage.expectItemInCart(productName);
+  });
 });
 

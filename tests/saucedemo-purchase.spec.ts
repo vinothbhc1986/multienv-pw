@@ -84,12 +84,11 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await cartPage.expectItemNotInCart(backpack);
   });
 
-  test('[TC-04] should allow continuing shopping from the cart', async ({ inventoryPage, cartPage, page }) => {
+  test('[TC-04] should allow continuing shopping from the cart', async ({ inventoryPage, cartPage }) => {
     await inventoryPage.addProductToCart(bikeLight);
     await inventoryPage.goToCart();
     await cartPage.continueShopping();
     await inventoryPage.isLoaded();
-    await page.screenshot({ path: `test-results/screenshots/Bike.png`, fullPage: true });
   });
 
   test('[TC-05] should display error when checkout information is missing', async ({ inventoryPage, cartPage, checkoutPage }) => {
@@ -157,6 +156,26 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await checkoutPage.clickFinish();
     await checkoutPage.expectOrderConfirmed();
   });
+
+  test('[TC-39] should return to inventory when clicking Back Home after checkout complete', async ({
+    page,
+    inventoryPage,
+    cartPage,
+    checkoutPage,
+  }) => {
+    await inventoryPage.addProductToCart(backpack);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
+    await checkoutPage.clickContinue();
+    await checkoutPage.clickFinish();
+
+    // Use accessible name (SauceDemo uses "Back Home")
+    await page.getByRole('button', { name: /back home/i }).click();
+    await inventoryPage.isLoaded();
+    await inventoryPage.expectUrl();
+  });
 });
 
 test.describe('SauceDemo - Cart Persistence @regression', () => {
@@ -213,5 +232,43 @@ test.describe('SauceDemo - Cart Persistence @regression', () => {
     await inventoryPage.goToCart();
     await cartPage.isLoaded();
     await cartPage.expectItemInCart(backpack);
+  });
+
+  test('[TC-40] should calculate subtotal and total correctly for multiple items at checkout overview', async ({
+    inventoryPage,
+    cartPage,
+    checkoutPage,
+    checkoutOverviewPage,
+  }) => {
+    await inventoryPage.addProductToCart(backpack);
+    await inventoryPage.addProductToCart(bikeLight);
+    await inventoryPage.goToCart();
+
+    await cartPage.proceedToCheckout();
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
+    await checkoutPage.clickContinue();
+    await checkoutPage.expectCheckoutStepTwoUrl();
+
+    await checkoutOverviewPage.expectCorrectTotal();
+  });
+
+  test('[TC-41] should allow checkout with an empty cart and show zero items in overview', async ({
+    page,
+    cartPage,
+    checkoutPage,
+    checkoutOverviewPage,
+  }) => {
+    await cartPage.goto();
+    await cartPage.isLoaded();
+    await cartPage.expectEmptyCart();
+
+    await cartPage.proceedToCheckout();
+    await checkoutPage.isLoaded();
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
+    await checkoutPage.clickContinue();
+    await checkoutOverviewPage.isLoaded();
+
+    await expect(page.locator('.cart_item')).toHaveCount(0);
+    await expect(page.locator('.summary_subtotal_label')).toContainText('$0');
   });
 });

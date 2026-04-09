@@ -40,8 +40,8 @@ export class CheckoutPage {
   }
 
   async expectOrderConfirmed() {
-    // Continue execution, reports later
-    await expect.soft(this.confirmationHeader).toBeVisible();
+   // Prefer expect over expect.soft for functional checks (fail-fast makes debugging easier):
+    await expect(this.confirmationHeader).toBeVisible();
   }
 
   async clickCancel() {
@@ -49,8 +49,8 @@ export class CheckoutPage {
   }
 
   async expectErrorMessage(message: string) {
-    await expect.soft(this.errorMessage).toBeVisible();
-    await expect.soft(this.errorMessage).toHaveText(message);
+    await expect(this.errorMessage).toBeVisible();
+    await expect(this.errorMessage).toHaveText(message);
   }
 
   async expectCheckoutStepTwoUrl() {
