@@ -8,7 +8,7 @@ node_modules/
 /playwright/.auth/
 .agents/
 .auth/
-
+.specstory/
 # Environment variables
 .env
 .env.local
