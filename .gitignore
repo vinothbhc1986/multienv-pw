@@ -9,6 +9,8 @@ node_modules/
 .agents/
 .auth/
 .specstory/
+.specstory/statistics.json
+.specstory
 # Environment variables
 .env
 .env.local
