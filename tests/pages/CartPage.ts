@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect, test } from '@playwright/test';
 
 export class CartPage {
   readonly checkoutButton: Locator;
@@ -16,34 +16,48 @@ export class CartPage {
   }
 
   async proceedToCheckout() {
-    await this.checkoutButton.click();
+    await test.step('Proceed to checkout', async () => {
+      await this.checkoutButton.click();
+    });
   }
 
   async continueShopping() {
-    await this.continueShoppingButton.click();
+    await test.step('Continue shopping', async () => {
+      await this.continueShoppingButton.click();
+    });
   }
 
   async removeItem(productName: string) {
-    const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
-    await cartItem.getByRole('button', { name: /remove/i }).click();
+    await test.step(`Remove item ${productName} from cart`, async () => {
+      const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
+      await cartItem.getByRole('button', { name: /remove/i }).click();
+    });
   }
 
   async expectItemInCart(productName: string) {
-    const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
-    await expect(cartItem).toBeVisible();
+    await test.step(`Verify item ${productName} is in cart`, async () => {
+      const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
+      await expect(cartItem).toBeVisible();
+    });
   }
 
   async expectItemNotInCart(productName: string) {
-    const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
-    await expect(cartItem).toHaveCount(0);
+    await test.step(`Verify item ${productName} is not in cart`, async () => {
+      const cartItem = this.page.locator('.cart_item').filter({ hasText: productName });
+      await expect(cartItem).toHaveCount(0);
+    });
   }
 
   async goto() {
-    await this.page.goto('/cart.html');
+    await test.step('Navigate to cart page', async () => {
+      await this.page.goto('/cart.html');
+    });
   }
 
   async expectEmptyCart() {
-    await expect(this.page.locator('.cart_item')).toHaveCount(0);
+    await test.step('Verify cart is empty', async () => {
+      await expect(this.page.locator('.cart_item')).toHaveCount(0);
+    });
   }
 
   async expectUrl() {

@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect, test } from '@playwright/test';
 
 export class CheckoutPage {
   readonly firstNameInput: Locator;
@@ -26,34 +26,47 @@ export class CheckoutPage {
   }
 
   async fillDetails(firstName: string, lastName: string, postalCode: string) {
-    await this.firstNameInput.fill(firstName);
-    await this.lastNameInput.fill(lastName);
-    await this.postalCodeInput.fill(postalCode);
+    await test.step(`Fill checkout details: ${firstName} ${lastName}, ${postalCode}`, async () => {
+      await this.firstNameInput.fill(firstName);
+      await this.lastNameInput.fill(lastName);
+      await this.postalCodeInput.fill(postalCode);
+    });
   }
 
   async clickContinue() {
-    await this.continueButton.click();
+    await test.step('Click continue button', async () => {
+      await this.continueButton.click();
+    });
   }
 
   async clickFinish() {
-    await this.finishButton.click();
+    await test.step('Click finish button', async () => {
+      await this.finishButton.click();
+    });
   }
 
   async expectOrderConfirmed() {
-   // Prefer expect over expect.soft for functional checks (fail-fast makes debugging easier):
-    await expect(this.confirmationHeader).toBeVisible();
+    await test.step('Verify order is confirmed', async () => {
+      await expect(this.confirmationHeader).toBeVisible();
+    });
   }
 
   async clickCancel() {
-    await this.cancelButton.click();
+    await test.step('Click cancel button', async () => {
+      await this.cancelButton.click();
+    });
   }
 
   async expectErrorMessage(message: string) {
-    await expect(this.errorMessage).toBeVisible();
-    await expect(this.errorMessage).toHaveText(message);
+    await test.step(`Verify error message: ${message}`, async () => {
+      await expect(this.errorMessage).toBeVisible();
+      await expect(this.errorMessage).toHaveText(message);
+    });
   }
 
   async expectCheckoutStepTwoUrl() {
-    await expect(this.page).toHaveURL(/checkout-step-two\.html$/);
+    await test.step('Verify checkout step two URL', async () => {
+      await expect(this.page).toHaveURL(/checkout-step-two\.html$/);
+    });
   }
 }

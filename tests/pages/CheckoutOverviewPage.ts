@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect, test } from '@playwright/test';
 import { CheckoutCompletePage } from './CheckoutCompletePage';
 
 export class CheckoutOverviewPage {
@@ -54,15 +54,17 @@ export class CheckoutOverviewPage {
   }
 
   async expectCorrectTotal() {
-    const itemPrices = await this.getItemPrices();
-    const subtotal = itemPrices.reduce((sum, p) => sum + p, 0);
-    const displayedSubtotal = await this.getSubtotal();
-    expect(displayedSubtotal).toBeCloseTo(subtotal, 2);
+    await test.step('Verify subtotal, tax, and total values', async () => {
+      const itemPrices = await this.getItemPrices();
+      const subtotal = itemPrices.reduce((sum, p) => sum + p, 0);
+      const displayedSubtotal = await this.getSubtotal();
+      expect.soft(displayedSubtotal).toBeCloseTo(subtotal, 2);
 
-    const tax = await this.getTax();
-    const total = await this.getTotal();
-    
-    expect(total).toBeCloseTo(subtotal + tax, 2);
+      const tax = await this.getTax();
+      const total = await this.getTotal();
+      
+      expect.soft(total).toBeCloseTo(subtotal + tax, 2);
+    });
   }
 
   async expectUrl() {

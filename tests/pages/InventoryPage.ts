@@ -1,4 +1,4 @@
-import { type Page, type Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect, test } from '@playwright/test';
 import { HeaderComponent } from './components/HeaderComponent';
 
 export class InventoryPage {
@@ -27,11 +27,13 @@ export class InventoryPage {
   }
 
   async addProductToCart(productName: string) {
-    const productCard = this.page
-      .locator('.inventory_item')
-      .filter({ hasText: productName });
-    await expect(productCard).toBeVisible();
-    await productCard.getByRole('button', { name: /add to cart/i }).click();
+    await test.step(`Adding product ${productName} to cart`, async () => {
+      const productCard = this.page
+        .locator('.inventory_item')
+        .filter({ hasText: productName });
+      await expect(productCard).toBeVisible();
+      await productCard.getByRole('button', { name: /add to cart/i }).click();
+    });
   }
 
   async goToCart() {
