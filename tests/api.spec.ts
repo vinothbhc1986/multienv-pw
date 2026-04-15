@@ -1,328 +1,359 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './utils/api.fixtures';
+import { API } from './utils/api.constants';
+import {
+  buildApiUrl,
+  validateUserStructure,
+  validateEmailFormat,
+  validateResourceStructure,
+  validateCreatedUserStructure,
+  validateISODateFormat,
+  validateAuthTokenResponse,
+  validateErrorResponse,
+  validateListResponse,
+} from './utils/api-test.helpers';
+import {
+  TEST_USER_IDS,
+  TEST_RESOURCE_IDS,
+  TEST_CREDENTIALS,
+  TEST_PAGINATION,
+  TEST_TIMEOUTS,
+  createTestUser,
+  createLoginCredentials,
+  createRegisterCredentials,
+  createSpecialCharacterUser,
+  createLongDataUser,
+  createUpdatedUser,
+  createPartialUpdateData,
+} from './utils/api-test.data';
 
-test.describe('API Testing with Reqres.in', () => {
-  const baseURL = 'https://reqres.in/api';
+test.describe('API Testing with Reqres.in @regression', () => {
 
-  test.use({
-    extraHTTPHeaders: {
-      'x-api-key': process.env.REQRES_API_KEY || ''
-    }
-  });
 
-  test('GET - Fetch list of users', async ({ request }) => {
-    const response = await request.get(`${baseURL}/users?page=2`);
+  // ============================================================================
+  // Basic CRUD Operations
+  // ============================================================================
+
+  test('GET - Fetch list of users @smoke', async ({ apiRequest }) => {
+    const url = buildApiUrl(API.ENDPOINTS.USERS, undefined, `?page=${TEST_PAGINATION.VALID_PAGE}`);
+    const response = await apiRequest.get(url);
+    
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
 
     const responseBody = await response.json();
-    expect(responseBody).toHaveProperty('page', 2);
-    expect(responseBody.data).toBeInstanceOf(Array);
-    expect(responseBody.data.length).toBeGreaterThan(0);
+    expect(validateListResponse(responseBody)).toBeTruthy();
+    expect(responseBody.page).toBe(TEST_PAGINATION.VALID_PAGE);
   });
 
-  test('GET - Fetch a single user by ID', async ({ request }) => {
-    const response = await request.get(`${baseURL}/users/2`);
+  test('GET - Fetch a single user by ID @smoke', async ({ apiRequest }) => {
+    const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+    const response = await apiRequest.get(url);
+    
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
 
     const responseBody = await response.json();
-    expect(responseBody.data).toHaveProperty('id', 2);
-    expect(responseBody.data).toHaveProperty('email');
-    expect(responseBody.data).toHaveProperty('first_name');
-    expect(responseBody.data).toHaveProperty('last_name');
+    expect(responseBody.data.id).toBe(TEST_USER_IDS.VALID);
+    expect(validateUserStructure(responseBody.data)).toBeTruthy();
+    expect(validateEmailFormat(responseBody.data.email)).toBeTruthy();
   });
 
-  test('GET - Fetch a user that does not exist', async ({ request }) => {
-    const response = await request.get(`${baseURL}/users/23`);
+  test('GET - Fetch a user that does not exist @smoke', async ({ apiRequest }) => {
+    const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.INVALID);
+    const response = await apiRequest.get(url);
+    
     expect(response.status()).toBe(404);
   });
 
-  test('POST - Create a new user', async ({ request }) => {
-    const newUser = {
-      name: 'morpheus',
-      job: 'leader'
-    };
-
-    const response = await request.post(`${baseURL}/users`, {
-      data: newUser
-    });
+  test('POST - Create a new user @smoke', async ({ apiRequest }) => {
+    const newUser = createTestUser();
+    const url = buildApiUrl(API.ENDPOINTS.USERS);
+    const response = await apiRequest.post(url, newUser);
+    
     expect(response.ok()).toBeTruthy();
-    expect(response.status()).toBe(201); // 201 Created
+    expect(response.status()).toBe(201);
 
     const responseBody = await response.json();
-    expect(responseBody).toHaveProperty('name', newUser.name);
-    expect(responseBody).toHaveProperty('job', newUser.job);
-    expect(responseBody).toHaveProperty('id');
-    expect(responseBody).toHaveProperty('createdAt');
+    expect(responseBody.name).toBe(newUser.name);
+    expect(responseBody.job).toBe(newUser.job);
+    expect(validateCreatedUserStructure(responseBody)).toBeTruthy();
   });
 
-  test('PUT - Update an existing user', async ({ request }) => {
-    const updatedData = {
-      name: 'morpheus',
-      job: 'zion resident'
-    };
-
-    const response = await request.put(`${baseURL}/users/2`, {
-      data: updatedData
-    });
+  test('PUT - Update an existing user @smoke', async ({ apiRequest }) => {
+    const updatedData = createUpdatedUser();
+    const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+    const response = await apiRequest.put(url, updatedData);
+    
     expect(response.ok()).toBeTruthy();
     expect(response.status()).toBe(200);
 
     const responseBody = await response.json();
-    expect(responseBody).toHaveProperty('name', updatedData.name);
-    expect(responseBody).toHaveProperty('job', updatedData.job);
+    expect(responseBody.name).toBe(updatedData.name);
+    expect(responseBody.job).toBe(updatedData.job);
     expect(responseBody).toHaveProperty('updatedAt');
   });
 
-  test('DELETE - Delete an existing user', async ({ request }) => {
-    const response = await request.delete(`${baseURL}/users/2`);
+  test('DELETE - Delete an existing user @smoke', async ({ apiRequest }) => {
+    const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+    const response = await apiRequest.delete(url);
+    
     expect(response.ok()).toBeTruthy();
-    expect(response.status()).toBe(204); // 204 No Content
+    expect(response.status()).toBe(204);
   });
-
-  // Additional comprehensive test cases
+  // ============================================================================
+  // Pagination & Query Parameters
+  // ============================================================================
 
   test.describe('Pagination & Query Parameters', () => {
-    test('GET - Users with different page sizes', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users?per_page=5`);
+    test('GET - Users with different page sizes', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, undefined, `?per_page=${TEST_PAGINATION.VALID_PER_PAGE}`);
+      const response = await apiRequest.get(url);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody.data).toHaveLength(5);
-      expect(responseBody).toHaveProperty('per_page', 5);
+      expect(responseBody.data).toHaveLength(TEST_PAGINATION.VALID_PER_PAGE);
+      expect(responseBody.per_page).toBe(TEST_PAGINATION.VALID_PER_PAGE);
     });
 
-    test('GET - Users with invalid page number', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users?page=999`);
+    test('GET - Users with invalid page number', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, undefined, `?page=${TEST_PAGINATION.INVALID_PAGE}`);
+      const response = await apiRequest.get(url);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
       expect(responseBody.data).toHaveLength(0);
-      expect(responseBody).toHaveProperty('page', 999);
+      expect(responseBody.page).toBe(TEST_PAGINATION.INVALID_PAGE);
     });
 
-    test('GET - Users with negative page number', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users?page=-1`);
+    test('GET - Users with negative page number', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, undefined, `?page=${TEST_PAGINATION.NEGATIVE_PAGE}`);
+      const response = await apiRequest.get(url);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody.data).toBeInstanceOf(Array);
+      expect(Array.isArray(responseBody.data)).toBeTruthy();
     });
   });
+  // ============================================================================
+  // Response Headers & Content Types
+  // ============================================================================
 
   test.describe('Response Headers & Content Types', () => {
-    test('GET - Verify response headers', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users/2`);
+    test('GET - Verify response headers', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+      const response = await apiRequest.get(url);
 
-      // Check common headers
       expect(response.headers()['content-type']).toContain('application/json');
       expect(response.headers()['access-control-allow-origin']).toBe('*');
     });
 
-    test('POST - Send different content types', async ({ request }) => {
-      const response = await request.post(`${baseURL}/users`, {
-        data: JSON.stringify({ name: 'test', job: 'tester' }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+    test('POST - Send different content types', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const testUser = createTestUser();
+      const response = await apiRequest.post(url, JSON.stringify(testUser));
+      
       expect(response.ok()).toBeTruthy();
     });
   });
+  // ============================================================================
+  // Data Validation & Edge Cases
+  // ============================================================================
 
   test.describe('Data Validation & Edge Cases', () => {
-    test('POST - Create user with empty data', async ({ request }) => {
-      const response = await request.post(`${baseURL}/users`, {
-        data: {}
-      });
+    test('POST - Create user with empty data', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const response = await apiRequest.post(url, {});
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
       expect(responseBody).toHaveProperty('id');
       expect(responseBody).toHaveProperty('createdAt');
     });
 
-    test('POST - Create user with special characters', async ({ request }) => {
-      const specialUser = {
-        name: 'Test@User#123',
-        job: 'developer & tester'
-      };
-
-      const response = await request.post(`${baseURL}/users`, {
-        data: specialUser
-      });
+    test('POST - Create user with special characters', async ({ apiRequest }) => {
+      const specialUser = createSpecialCharacterUser();
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const response = await apiRequest.post(url, specialUser);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
       expect(responseBody.name).toBe(specialUser.name);
       expect(responseBody.job).toBe(specialUser.job);
     });
 
-    test('POST - Create user with very long data', async ({ request }) => {
-      const longName = 'A'.repeat(1000);
-      const longJob = 'B'.repeat(500);
-
-      const response = await request.post(`${baseURL}/users`, {
-        data: { name: longName, job: longJob }
-      });
+    test('POST - Create user with very long data', async ({ apiRequest }) => {
+      const longDataUser = createLongDataUser();
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const response = await apiRequest.post(url, longDataUser);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody.name).toBe(longName);
-      expect(responseBody.job).toBe(longJob);
+      expect(responseBody.name).toBe(longDataUser.name);
+      expect(responseBody.job).toBe(longDataUser.job);
     });
 
-    test('PUT - Update with partial data', async ({ request }) => {
-      const response = await request.put(`${baseURL}/users/2`, {
-        data: { name: 'Updated Name' } // Only updating name
-      });
+    test('PUT - Update with partial data', async ({ apiRequest }) => {
+      const partialUpdate = createPartialUpdateData();
+      const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+      const response = await apiRequest.put(url, partialUpdate);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody.name).toBe('Updated Name');
+      expect(responseBody.name).toBe(partialUpdate.name);
       expect(responseBody).toHaveProperty('updatedAt');
     });
   });
+  // ============================================================================
+  // Authentication Endpoints
+  // ============================================================================
 
-  test.describe('Authentication Endpoints', () => {
-    test('POST - User registration', async ({ request }) => {
-      const registerData = {
-        email: 'eve.holt@reqres.in',
-        password: 'pistol'
-      };
-
-      const response = await request.post(`${baseURL}/register`, {
-        data: registerData
-      });
+  test.describe('Authentication Endpoints @critical', () => {
+    test('POST - User registration', async ({ apiRequest }) => {
+      const registerData = createRegisterCredentials();
+      const url = buildApiUrl(API.ENDPOINTS.REGISTER);
+      const response = await apiRequest.post(url, registerData);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('id');
-      expect(responseBody).toHaveProperty('token');
+      expect(validateAuthTokenResponse(responseBody)).toBeTruthy();
     });
 
-    test('POST - User login', async ({ request }) => {
-      const loginData = {
-        email: 'eve.holt@reqres.in',
-        password: 'cityslicka'
-      };
-
-      const response = await request.post(`${baseURL}/login`, {
-        data: loginData
-      });
+    test('POST - User login', async ({ apiRequest }) => {
+      const loginData = createLoginCredentials();
+      const url = buildApiUrl(API.ENDPOINTS.LOGIN);
+      const response = await apiRequest.post(url, loginData);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('token');
+      expect(validateAuthTokenResponse(responseBody)).toBeTruthy();
     });
 
-    test('POST - Register with missing password', async ({ request }) => {
-      const response = await request.post(`${baseURL}/register`, {
-        data: { email: 'test@example.com' }
-      });
+    test('POST - Register with missing password', async ({ apiRequest }) => {
+      const invalidRegisterData = { email: TEST_CREDENTIALS.VALID_EMAIL };
+      const url = buildApiUrl(API.ENDPOINTS.REGISTER);
+      const response = await apiRequest.post(url, invalidRegisterData);
+      
       expect(response.status()).toBe(400);
-
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('error');
+      expect(validateErrorResponse(responseBody)).toBeTruthy();
     });
 
-    test('POST - Login with invalid credentials', async ({ request }) => {
-      const response = await request.post(`${baseURL}/login`, {
-        data: {
-          email: 'invalid@example.com',
-          password: 'wrongpassword'
-        }
-      });
+    test('POST - Login with invalid credentials', async ({ apiRequest }) => {
+      const invalidLoginData = {
+        email: TEST_CREDENTIALS.INVALID_EMAIL,
+        password: TEST_CREDENTIALS.INVALID_PASSWORD,
+      };
+      const url = buildApiUrl(API.ENDPOINTS.LOGIN);
+      const response = await apiRequest.post(url, invalidLoginData);
+      
       expect(response.status()).toBe(400);
-
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('error');
+      expect(validateErrorResponse(responseBody)).toBeTruthy();
     });
   });
+  // ============================================================================
+  // Resource Endpoints
+  // ============================================================================
 
   test.describe('Resource Endpoints', () => {
-    test('GET - Fetch list of resources', async ({ request }) => {
-      const response = await request.get(`${baseURL}/unknown`);
+    test('GET - Fetch list of resources', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.RESOURCES);
+      const response = await apiRequest.get(url);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('data');
-      expect(responseBody.data).toBeInstanceOf(Array);
+      expect(Array.isArray(responseBody.data)).toBeTruthy();
       expect(responseBody.data.length).toBeGreaterThan(0);
     });
 
-    test('GET - Fetch single resource', async ({ request }) => {
-      const response = await request.get(`${baseURL}/unknown/2`);
+    test('GET - Fetch single resource', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.RESOURCES, TEST_RESOURCE_IDS.VALID);
+      const response = await apiRequest.get(url);
+      
       expect(response.ok()).toBeTruthy();
-
       const responseBody = await response.json();
-      expect(responseBody.data).toHaveProperty('id', 2);
-      expect(responseBody.data).toHaveProperty('name');
-      expect(responseBody.data).toHaveProperty('year');
-      expect(responseBody.data).toHaveProperty('color');
-      expect(responseBody.data).toHaveProperty('pantone_value');
+      expect(responseBody.data.id).toBe(TEST_RESOURCE_IDS.VALID);
+      expect(validateResourceStructure(responseBody.data)).toBeTruthy();
     });
 
-    test('GET - Fetch non-existent resource', async ({ request }) => {
-      const response = await request.get(`${baseURL}/unknown/999`);
+    test('GET - Fetch non-existent resource', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.RESOURCES, TEST_RESOURCE_IDS.INVALID);
+      const response = await apiRequest.get(url);
+      
       expect(response.status()).toBe(404);
     });
   });
+  // ============================================================================
+  // Error Scenarios & Status Codes
+  // ============================================================================
 
   test.describe('Error Scenarios & Status Codes', () => {
-    test('GET - Very high user ID should return 404', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users/999999`);
+    test('GET - Very high user ID should return 404', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.NONEXISTENT);
+      const response = await apiRequest.get(url);
+      
       expect(response.status()).toBe(404);
     });
 
-    test('PUT - Update non-existent user', async ({ request }) => {
-      const response = await request.put(`${baseURL}/users/999`, {
-        data: { name: 'Test' }
-      });
-      expect(response.ok()).toBeTruthy(); // Reqres.in returns 200 even for non-existent users
+    test('PUT - Update non-existent user', async ({ apiRequest }) => {
+      const updateData = createUpdatedUser();
+      const url = buildApiUrl(API.ENDPOINTS.USERS, 999);
+      const response = await apiRequest.put(url, updateData);
+      
+      // Reqres.in returns 200 even for non-existent users
+      expect(response.ok()).toBeTruthy();
     });
 
-    test('DELETE - Delete non-existent user', async ({ request }) => {
-      const response = await request.delete(`${baseURL}/users/999`);
-      expect(response.ok()).toBeTruthy(); // Reqres.in returns 204 even for non-existent users
+    test('DELETE - Delete non-existent user', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, 999);
+      const response = await apiRequest.delete(url);
+      
+      // Reqres.in returns 204 even for non-existent users
+      expect(response.ok()).toBeTruthy();
     });
 
-    test('POST - Malformed JSON', async ({ request }) => {
-      const response = await request.post(`${baseURL}/users`, {
-        data: '{ invalid json }',
-        headers: { 'Content-Type': 'application/json' }
-      });
+    test('POST - Malformed JSON', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const response = await apiRequest.post(url, '{ invalid json }');
+      
       // This might return 400 or be handled gracefully
       expect([200, 201, 400]).toContain(response.status());
     });
   });
+  // ============================================================================
+  // Performance & Response Time
+  // ============================================================================
 
   test.describe('Performance & Response Time', () => {
-    test('GET - Response time should be reasonable', async ({ request }) => {
+    test('GET - Response time should be reasonable', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
       const startTime = Date.now();
-      const response = await request.get(`${baseURL}/users`);
+      const response = await apiRequest.get(url);
       const endTime = Date.now();
 
       expect(response.ok()).toBeTruthy();
-      expect(endTime - startTime).toBeLessThan(5000); // Should respond within 5 seconds
+      expect(endTime - startTime).toBeLessThan(TEST_TIMEOUTS.RESPONSE_TIME);
     });
 
-    test('POST - Create user response time', async ({ request }) => {
+    test('POST - Create user response time', async ({ apiRequest }) => {
+      const testUser = createTestUser();
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
       const startTime = Date.now();
-      const response = await request.post(`${baseURL}/users`, {
-        data: { name: 'Performance Test', job: 'tester' }
-      });
+      const response = await apiRequest.post(url, testUser);
       const endTime = Date.now();
 
       expect(response.ok()).toBeTruthy();
-      expect(endTime - startTime).toBeLessThan(3000); // Should respond within 3 seconds
+      expect(endTime - startTime).toBeLessThan(TEST_TIMEOUTS.POST_TIME);
     });
   });
+  // ============================================================================
+  // Concurrent Requests
+  // ============================================================================
 
   test.describe('Concurrent Requests', () => {
-    test('Multiple simultaneous GET requests', async ({ request }) => {
-      const promises = Array(5).fill().map(() =>
-        request.get(`${baseURL}/users/2`)
-      );
-
+    test('Multiple simultaneous GET requests', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+      const promises = Array(5).fill(null).map(() => apiRequest.get(url));
       const responses = await Promise.all(promises);
 
       responses.forEach(response => {
@@ -331,11 +362,13 @@ test.describe('API Testing with Reqres.in', () => {
       });
     });
 
-    test('Mixed GET and POST requests', async ({ request }) => {
-      const getPromise = request.get(`${baseURL}/users`);
-      const postPromise = request.post(`${baseURL}/users`, {
-        data: { name: 'Concurrent Test', job: 'tester' }
-      });
+    test('Mixed GET and POST requests', async ({ apiRequest }) => {
+      const getUrl = buildApiUrl(API.ENDPOINTS.USERS);
+      const postUrl = buildApiUrl(API.ENDPOINTS.USERS);
+      const testUser = createTestUser();
+
+      const getPromise = apiRequest.get(getUrl);
+      const postPromise = apiRequest.post(postUrl, testUser);
 
       const [getResponse, postResponse] = await Promise.all([getPromise, postPromise]);
 
@@ -343,44 +376,31 @@ test.describe('API Testing with Reqres.in', () => {
       expect(postResponse.ok()).toBeTruthy();
     });
   });
+  // ============================================================================
+  // Data Structure Validation
+  // ============================================================================
 
   test.describe('Data Structure Validation', () => {
-    test('GET - Validate user data structure', async ({ request }) => {
-      const response = await request.get(`${baseURL}/users/2`);
+    test('GET - Validate user data structure', async ({ apiRequest }) => {
+      const url = buildApiUrl(API.ENDPOINTS.USERS, TEST_USER_IDS.VALID);
+      const response = await apiRequest.get(url);
       const responseBody = await response.json();
 
-      // Validate data structure
-      expect(responseBody.data).toEqual(
-        expect.objectContaining({
-          id: expect.any(Number),
-          email: expect.any(String),
-          first_name: expect.any(String),
-          last_name: expect.any(String),
-          avatar: expect.any(String)
-        })
-      );
-
-      // Validate email format
-      expect(responseBody.data.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+      expect(validateUserStructure(responseBody.data)).toBeTruthy();
+      expect(validateEmailFormat(responseBody.data.email)).toBeTruthy();
     });
 
-    test('POST - Validate created user structure', async ({ request }) => {
-      const response = await request.post(`${baseURL}/users`, {
-        data: { name: 'Structure Test', job: 'validator' }
+    test('POST - Validate created user structure', async ({ apiRequest }) => {
+      const testUser = createTestUser({
+        name: 'Structure Test',
+        job: 'validator',
       });
+      const url = buildApiUrl(API.ENDPOINTS.USERS);
+      const response = await apiRequest.post(url, testUser);
       const responseBody = await response.json();
 
-      expect(responseBody).toEqual(
-        expect.objectContaining({
-          name: 'Structure Test',
-          job: 'validator',
-          id: expect.any(String),
-          createdAt: expect.any(String)
-        })
-      );
-
-      // Validate createdAt is a valid ISO date
-      expect(new Date(responseBody.createdAt).toISOString()).toBe(responseBody.createdAt);
+      expect(validateCreatedUserStructure(responseBody)).toBeTruthy();
+      expect(validateISODateFormat(responseBody.createdAt)).toBeTruthy();
     });
   });
 });

@@ -24,14 +24,14 @@ export default defineConfig({
   testDir: './tests',
   snapshotDir: './tests/snapshots',
   timeout: 60_000,
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* Run tests sequentially to avoid rate limiting on API tests */
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Retry failed tests */
+  retries: 3,
+  /* Use single worker to prevent rate limiting */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI || process.env.CLAUDE
     ? [['line'], ['junit', { outputFile: 'test-results/junit.xml' }], ['html', { open: 'never' }]]
