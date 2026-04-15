@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
 const env = process.env.TEST_ENV || 'dev';
 const testDataPath = path.resolve(__dirname, 'config', `testdata.${env}.json`);
@@ -13,9 +14,7 @@ const headless = testData.HEADLESS;
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
