@@ -152,7 +152,7 @@ test.describe('API Testing with Reqres.in @regression', () => {
       const testUser = createTestUser();
       const response = await apiRequest.post(url, JSON.stringify(testUser));
       
-      expect(response.ok()).toBeTruthy();
+    expect(response.ok()).toBeTruthy();
     });
   });
   // ============================================================================
