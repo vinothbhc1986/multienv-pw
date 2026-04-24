@@ -103,6 +103,22 @@ export const test = base.extend({
         }
         return response;
       },
+      fetch: async (url: string, options?: any) => {
+        await ensureMinInterval();
+        const response = await request.fetch(url, { 
+          ...options,
+          headers: { 
+            'x-api-key': apiKey || '',
+            ...options?.headers 
+          },
+        });
+        const method = options?.method || 'GET';
+        if (!response.ok()) {
+          const body = await response.text();
+          console.log(`[${method}] ${url}\n  Status: ${response.status()}\n  Body: ${body.substring(0, 200)}`);
+        }
+        return response;
+      },
     };
 
     await use(apiRequest);

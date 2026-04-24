@@ -188,7 +188,7 @@ test.describe('SauceDemo - Penetration Testing @security', () => {
       // Should redirect to login or stay on login page
       const currentUrl = page.url();
       expect(currentUrl).not.toContain('/inventory'); // Should not be logged in
-
+      
       // Page should remain functional
       await expect(page.locator('[data-test="username"]')).toBeVisible();
     });
