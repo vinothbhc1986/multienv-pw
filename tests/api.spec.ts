@@ -1,4 +1,5 @@
-import { test, expect } from './utils/api.fixtures';
+import { test } from './utils/api.fixtures';
+import {expect} from '@playwright/test';
 import { API } from './utils/api.constants';
 import {
   buildApiUrl,
