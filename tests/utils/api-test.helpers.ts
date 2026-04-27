@@ -10,14 +10,16 @@ import { API } from './api.constants';
  * @param endpoint - API endpoint from API.ENDPOINTS
  * @param id - Optional resource ID
  * @param queryParams - Optional query string (e.g., "?page=2&per_page=5")
+ * @param baseUrl - Optional custom base URL (defaults to API.BASE_URL)
  * @returns Complete API URL
  */
 export const buildApiUrl = (
   endpoint: string,
   id?: string | number,
-  queryParams?: string
+  queryParams?: string,
+  baseUrl: string = API.BASE_URL
 ): string => {
-  let url = `${API.BASE_URL}${endpoint}`;
+  let url = `${baseUrl}${endpoint}`;
   if (id) {
     url += `/${id}`;
   }
