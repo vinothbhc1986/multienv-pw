@@ -1,0 +1,149 @@
+/**
+ * Generic API Test Fixtures Factory
+ * Provides a configurable fixture for API testing with optional authentication and rate limiting
+ */
+
+import { test as base } from '@playwright/test';
+
+export interface ApiFixtureConfig {
+  apiKeyEnvVar?: string;
+  customHeaders?: Record<string, string>;
+  minRequestInterval?: number;
+  apiName?: string;
+  enableErrorLogging?: boolean;
+}
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Creates a generic API test fixture with configurable options
+ * @param config Configuration for the API fixture
+ * @returns Extended test fixture with apiRequest fixture
+ */
+export function createApiFixture(config: ApiFixtureConfig = {}) {
+  const {
+    apiKeyEnvVar,
+    customHeaders = { 'Content-Type': 'application/json' },
+    minRequestInterval = 0,
+    apiName = 'API',
+    enableErrorLogging = true,
+  } = config;
+
+  return base.extend({
+    apiRequest: async ({ request }, use) => {
+      let lastRequestTime = 0;
+
+      const ensureMinInterval = async () => {
+        if (minRequestInterval === 0) return;
+
+        const now = Date.now();
+        const timeSinceLastRequest = now - lastRequestTime;
+
+        if (timeSinceLastRequest < minRequestInterval) {
+          await delay(minRequestInterval - timeSinceLastRequest);
+        }
+
+        lastRequestTime = Date.now();
+      };
+
+      // Handle API key if configured
+      const apiKey = apiKeyEnvVar ? process.env[apiKeyEnvVar] : null;
+
+      if (apiKeyEnvVar) {
+        if (!apiKey) {
+          console.warn(`⚠️ ${apiKeyEnvVar} is not set in environment variables`);
+        } else {
+          console.log(`✓ ${apiName} API key loaded (${apiKey.substring(0, 10)}...)`);
+        }
+      } else {
+        console.log(`✓ ${apiName} API - No authentication required`);
+      }
+
+      // Build headers
+      const headers: Record<string, string> = { ...customHeaders };
+      if (apiKey) {
+        headers['x-api-key'] = apiKey;
+      }
+
+      const logError = (method: string, url: string, status: number, body: string) => {
+        if (enableErrorLogging) {
+          console.log(
+            `[${method}] ${url}\n  Status: ${status}\n  Body: ${body.substring(0, 200)}`
+          );
+        }
+      };
+
+      // Create wrapper around request fixture
+      const apiRequest = {
+        get: async (url: string) => {
+          await ensureMinInterval();
+          const response = await request.get(url, { headers });
+          if (!response.ok()) {
+            const body = await response.text();
+            logError('GET', url, response.status(), body);
+          }
+          return response;
+        },
+
+        post: async (url: string, data: any) => {
+          await ensureMinInterval();
+          const response = await request.post(url, { data, headers });
+          if (!response.ok()) {
+            const body = await response.text();
+            logError('POST', url, response.status(), body);
+          }
+          return response;
+        },
+
+        put: async (url: string, data: any) => {
+          await ensureMinInterval();
+          const response = await request.put(url, { data, headers });
+          if (!response.ok()) {
+            const body = await response.text();
+            logError('PUT', url, response.status(), body);
+          }
+          return response;
+        },
+
+        patch: async (url: string, data: any) => {
+          await ensureMinInterval();
+          const response = await request.patch(url, { data, headers });
+          if (!response.ok()) {
+            const body = await response.text();
+            logError('PATCH', url, response.status(), body);
+          }
+          return response;
+        },
+
+        delete: async (url: string) => {
+          await ensureMinInterval();
+          const response = await request.delete(url, { headers });
+          if (!response.ok()) {
+            const body = await response.text();
+            logError('DELETE', url, response.status(), body);
+          }
+          return response;
+        },
+
+        fetch: async (url: string, options?: any) => {
+          await ensureMinInterval();
+          const response = await request.fetch(url, {
+            ...options,
+            headers: {
+              ...headers,
+              ...options?.headers,
+            },
+          });
+          const method = options?.method || 'GET';
+          if (!response.ok()) {
+            const body = await response.text();
+            logError(method, url, response.status(), body);
+          }
+          return response;
+        },
+      };
+
+      await use(apiRequest);
+    },
+  });
+}
