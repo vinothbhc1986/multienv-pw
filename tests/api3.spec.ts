@@ -1,4 +1,3 @@
-import { test } from './utils/api3.fixtures';
 import { expect } from '@playwright/test';
 import { API3 } from './utils/api3.constants';
 import { buildApiUrl } from './utils/api-test.helpers';
@@ -6,6 +5,11 @@ import {
   TEST_DATA,
   QUERY_PARAMS,
 } from './utils/api3-test.data';
+import { createApiFixture } from './utils/api-generic.fixtures';
+
+const test = createApiFixture({
+  apiName: 'REST Countries',
+});
 
 test.describe('API Testing with REST Countries @regression', () => {
   // ============================================================================

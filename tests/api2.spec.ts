@@ -1,4 +1,3 @@
-import { test } from './utils/api2.fixtures';
 import { expect } from '@playwright/test';
 import { API2 } from './utils/api2.constants';
 import { buildApiUrl } from './utils/api-test.helpers';
@@ -9,6 +8,12 @@ import {
   CREATE_TODO_DATA,
 } from './utils/api2-test.data';
 
+
+import { createApiFixture } from './utils/api-generic.fixtures';
+
+const test = createApiFixture({
+  apiName: 'JSONPlaceholder',
+});
 test.describe('API Testing with JSONPlaceholder @regression', () => {
   // ============================================================================
   // Posts Endpoints
