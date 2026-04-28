@@ -72,6 +72,9 @@ npx playwright test tests/saucedemo-purchase.spec.ts
 # Run tests with UI mode
 npm run test:ui
 
+# Run with multiple workers
+npm run test:test -- tests/api.spec.ts --headed=false -- --workers=4
+
 # Run tests in debug mode
 npm run test:debug
 

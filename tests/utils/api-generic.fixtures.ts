@@ -11,6 +11,7 @@ export interface ApiFixtureConfig {
   minRequestInterval?: number;
   apiName?: string;
   enableErrorLogging?: boolean;
+  enableRateLimiting?: boolean;
 }
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -27,14 +28,19 @@ export function createApiFixture(config: ApiFixtureConfig = {}) {
     minRequestInterval = 0,
     apiName = 'API',
     enableErrorLogging = true,
+    enableRateLimiting = false,
   } = config;
 
   return base.extend({
     apiRequest: async ({ request }, use) => {
       let lastRequestTime = 0;
 
+      // Determine if rate limiting should be applied
+      // Disable if: minRequestInterval is 0 OR rate limiting is disabled OR single worker/sequential execution
+      const shouldApplyRateLimit = enableRateLimiting && minRequestInterval > 0;
+
       const ensureMinInterval = async () => {
-        if (minRequestInterval === 0) return;
+        if (!shouldApplyRateLimit) return;
 
         const now = Date.now();
         const timeSinceLastRequest = now - lastRequestTime;
