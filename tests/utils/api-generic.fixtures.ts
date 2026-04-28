@@ -38,7 +38,7 @@ export function createApiFixture(config: ApiFixtureConfig = {}) {
       // Determine if rate limiting should be applied
       // Disable if: minRequestInterval is 0 OR rate limiting is disabled OR single worker/sequential execution
       const shouldApplyRateLimit = enableRateLimiting && minRequestInterval > 0;
-
+    console.log(`✓ ${apiName} API Fixture - Rate Limiting: ${shouldApplyRateLimit ? 'Enabled' : 'Disabled'} (min interval: ${minRequestInterval}ms)`);
       const ensureMinInterval = async () => {
         if (!shouldApplyRateLimit) return;
 
