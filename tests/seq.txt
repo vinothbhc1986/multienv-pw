@@ -1,0 +1,29 @@
+Each API takes ~1 second
+Next request starts only after previous response
+Total time = 3 APIs → ~3 seconds
+
+
+Time ↓
+
+User/App              API Server
+   |                      |
+t=0s
+   |---- Req 1 ---------> |
+   |                      |
+t=1s
+   | <--- Res 1 --------- |
+   |                      |
+t=1s
+   |---- Req 2 ---------> |
+   |                      |
+t=2s
+   | <--- Res 2 --------- |
+   |                      |
+t=2s
+   |---- Req 3 ---------> |
+   |                      |
+t=3s
+   | <--- Res 3 --------- |
+   |                      |
+   |                      |
+   |==== TOTAL TIME: 3s ====|

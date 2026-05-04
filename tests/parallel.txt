@@ -1,0 +1,20 @@
+- All API calls fire at the same time (parallel)
+- Promise.all() waits until all responses are completed
+
+
+
+Time ↓
+
+User/App              API Server
+   |                      |
+t=0s
+   |---- Req 1 ---------> |
+   |---- Req 2 ---------> |
+   |---- Req 3 ---------> |
+   |                      |
+t=1s
+   | <--- Res 1 --------- |
+   | <--- Res 2 --------- |
+   | <--- Res 3 --------- |
+   |                      |
+   |==== TOTAL TIME: ~1s ====|
