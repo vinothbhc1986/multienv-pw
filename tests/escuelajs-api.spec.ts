@@ -12,7 +12,17 @@ const BASE_URL = 'https://api.escuelajs.co/api/v1';
  * Covers authentication, and CRUD operations on categories.
  */
 
-test.describe('EscuelaJS API - Authentication', () => {
+test.describe.serial('EscuelaJS API - Authentication', () => {
+  let token: string = '';
+
+  test.beforeAll(async ({ request }) => {
+    const resp = await request.post(`${BASE_URL}/auth/login`, {
+      data: { email: 'john@mail.com', password: 'changeme' },
+    });
+    const body = await resp.json();
+    token = body.access_token as string;
+  });
+
   test('Login returns access JWT', async ({ request }) => {
     const resp = await request.post(`${BASE_URL}/auth/login`, {
       data: { email: 'john@mail.com', password: 'changeme' },
@@ -21,27 +31,27 @@ test.describe('EscuelaJS API - Authentication', () => {
     const body = await resp.json();
     expect(body).toHaveProperty('access_token');
     expect(body).toHaveProperty('refresh_token');
-    const access = body.access_token as string;
-    // Validate the token format (JWT)
-    expect(isJwt(access)).toBeTruthy();
+    expect(isJwt(body.access_token)).toBeTruthy();
+  });
+
+  test('GET profile with stored access token', async ({ request }) => {
+    const profileResp = await request.get(`${BASE_URL}/auth/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(profileResp.ok()).toBeTruthy();
+    const profile = await profileResp.json();
+    expect(profile).toHaveProperty('email');
+    expect(profile.email).toBe('john@mail.com');
+  });
+
+  test('GET profile fails without token', async ({ request }) => {
+    const resp = await request.get(`${BASE_URL}/auth/profile`);
+    expect([401, 403]).toContain(resp.status());
   });
 });
 
 test.describe.serial('EscuelaJS API - Category CRUD', () => {
-  let createdId: number = 0;
-  let token: string = '';
-  const existingCategoryId = 1; // Use a known existing category for testing
-
-  test.beforeAll(async ({ playwright }) => {
-    // Get token for authenticated requests using APIRequest
-    const request = await playwright.request.newContext();
-    const loginResp = await request.post(`${BASE_URL}/auth/login`, {
-      data: { email: 'john@mail.com', password: 'changeme' },
-    });
-    const loginData = await loginResp.json();
-    token = loginData.access_token as string;
-    await request.dispose();
-  });
+  let createdId: number;
 
   test('GET all categories returns array', async ({ request }) => {
     const resp = await request.get(`${BASE_URL}/categories`);
@@ -57,7 +67,6 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     };
     const resp = await request.post(`${BASE_URL}/categories`, {
       data: newCat,
-      headers: { Authorization: `Bearer ${token}` },
     });
     expect(resp.status()).toBe(201);
     const body = await resp.json();
@@ -68,9 +77,7 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
 
   test('GET single category by ID', async ({ request }) => {
     const categoryId = createdId;
-    const resp = await request.get(`${BASE_URL}/categories/${categoryId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const resp = await request.get(`${BASE_URL}/categories/${categoryId}`);
     expect(resp.ok()).toBeTruthy();
     const cat = await resp.json();
     expect(cat.id).toBe(categoryId);
@@ -81,7 +88,6 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
      image: `https://placeimg.com/640/480/tech/any?t=${Date.now()}` };
     const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: updated,
-      headers: { Authorization: `Bearer ${token}` },
     });
     expect(resp.ok()).toBeTruthy();
     const body = await resp.json();
@@ -93,7 +99,6 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     const patchData = { name: `Partially Updated Name ${Date.now()}` };
     const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: patchData,
-      headers: { Authorization: `Bearer ${token}` },
     });
     expect(resp.ok()).toBeTruthy();
     const body = await resp.json();
@@ -102,7 +107,6 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
 
     test('DELETE category', async ({ request }) => {
     const resp = await request.delete(`${BASE_URL}/categories/${createdId}`, {
-      headers: { Authorization: `Bearer ${token}` },
     });
     // EscuelaJS returns 200 with deleted object
     expect(resp.ok()).toBeTruthy();
