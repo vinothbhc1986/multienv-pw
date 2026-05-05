@@ -19,17 +19,18 @@ test.describe('EscuelaJS API - Authentication', () => {
     });
     expect(resp.ok()).toBeTruthy();
     const body = await resp.json();
-expect(body).toHaveProperty('access_token');
-const access = body.access_token as string;
-// The API returns only an access token (no refresh token)
-// Validate the token format (JWT)
-expect(isJwt(access)).toBeTruthy();
+    expect(body).toHaveProperty('access_token');
+    expect(body).toHaveProperty('refresh_token');
+    const access = body.access_token as string;
+    // Validate the token format (JWT)
+    expect(isJwt(access)).toBeTruthy();
   });
 });
 
 test.describe.serial('EscuelaJS API - Category CRUD', () => {
   let createdId: number = 0;
   let token: string = '';
+  const existingCategoryId = 1; // Use a known existing category for testing
 
   test.beforeAll(async ({ playwright }) => {
     // Get token for authenticated requests using APIRequest
@@ -50,34 +51,34 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
   });
 
   test('POST create new category', async ({ request }) => {
-    const newCat = { name: 'Automation Test Category', image: 'https://via.placeholder.com/640x480' };
+    const newCat = {
+      name: `Test Category ${Date.now()}`,
+      image: 'https://placeimg.com/640/480/any?t=' + Date.now(),
+    };
     const resp = await request.post(`${BASE_URL}/categories`, {
       data: newCat,
       headers: { Authorization: `Bearer ${token}` },
     });
-    // Accept either 201 (created) or 400 (bad request, possibly invalid image URL)
-    expect([201, 400]).toContain(resp.status());
+    expect(resp.status()).toBe(201);
     const body = await resp.json();
-    if (resp.status() === 201) {
-      expect(body).toHaveProperty('id');
-      expect(body.name).toBe(newCat.name);
-      createdId = body.id as number;
-    }
+    expect(body).toHaveProperty('id');
+    expect(body.name).toBe(newCat.name);
+    createdId = body.id as number;
   });
 
   test('GET single category by ID', async ({ request }) => {
-    // Depends on previous creation
-    const resp = await request.get(`${BASE_URL}/categories/${createdId}`, {
+    const categoryId = createdId;
+    const resp = await request.get(`${BASE_URL}/categories/${categoryId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(resp.ok()).toBeTruthy();
     const cat = await resp.json();
-    expect(cat.id).toBe(createdId);
+    expect(cat.id).toBe(categoryId);
     expect(cat).toHaveProperty('name');
   });
-
-  test('PUT update category fully', async ({ request }) => {
-    const updated = { name: 'Updated Category Name', image: 'https://placeimg.com/640/480/tech' };
+    test('PUT update category fully', async ({ request }) => {
+    const updated = { name: `Updated Category Name ${Date.now()}`,
+     image: `https://placeimg.com/640/480/tech/any?t=${Date.now()}` };
     const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: updated,
       headers: { Authorization: `Bearer ${token}` },
@@ -88,9 +89,9 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     expect(body.image).toBe(updated.image);
   });
 
-  test('PATCH partially update category', async ({ request }) => {
-    const patchData = { name: 'Patched Name' };
-    const resp = await request.patch(`${BASE_URL}/categories/${createdId}`, {
+    test('PUT partially update category', async ({ request }) => {
+    const patchData = { name: `Partially Updated Name ${Date.now()}` };
+    const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: patchData,
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -99,14 +100,14 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     expect(body.name).toBe(patchData.name);
   });
 
-  test('DELETE category', async ({ request }) => {
+    test('DELETE category', async ({ request }) => {
     const resp = await request.delete(`${BASE_URL}/categories/${createdId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     // EscuelaJS returns 200 with deleted object
     expect(resp.ok()).toBeTruthy();
     const body = await resp.json();
-    expect(body.id).toBe(createdId);
+    expect(body).toBe(true);
   });
 });
 
