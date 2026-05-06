@@ -6,6 +6,17 @@
 import { API } from './api.constants';
 
 /**
+ * Validate JWT format (xxx.yy.zzz)
+ * Matches three base64url parts separated by periods
+ * @param token - Token string to validate
+ * @returns true if token matches JWT pattern
+ */
+export const isJwt = (token: string): boolean => {
+  return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token);
+};
+
+export const BEARER_TOKEN_PREFIX = 'Bearer ';
+/**
  * Build a complete API URL with optional ID and query parameters
  * @param endpoint - API endpoint from API.ENDPOINTS
  * @param id - Optional resource ID
