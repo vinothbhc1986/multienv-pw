@@ -14,24 +14,24 @@ const BASE_URL = 'https://api.escuelajs.co/api/v1';
 
 test.describe.serial('EscuelaJS API - Authentication', () => {
   let token: string = '';
+  let refreshToken: string = '';
 
-  test.beforeAll(async ({ request }) => {
+  test.beforeAll(async ({ playwright }) => {
+    const request = await playwright.request.newContext();
     const resp = await request.post(`${BASE_URL}/auth/login`, {
       data: { email: 'john@mail.com', password: 'changeme' },
     });
     const body = await resp.json();
     token = body.access_token as string;
+    refreshToken = body.refresh_token as string;
+    await request.dispose();
   });
 
   test('Login returns access JWT', async ({ request }) => {
-    const resp = await request.post(`${BASE_URL}/auth/login`, {
-      data: { email: 'john@mail.com', password: 'changeme' },
-    });
-    expect(resp.ok()).toBeTruthy();
-    const body = await resp.json();
-    expect(body).toHaveProperty('access_token');
-    expect(body).toHaveProperty('refresh_token');
-    expect(isJwt(body.access_token)).toBeTruthy();
+    expect(token.length).toBeGreaterThan(0);
+    expect(isJwt(token)).toBeTruthy();
+    expect(refreshToken.length).toBeGreaterThan(0);
+    expect(isJwt(refreshToken)).toBeTruthy();
   });
 
   test('GET profile with stored access token', async ({ request }) => {
@@ -43,7 +43,9 @@ test.describe.serial('EscuelaJS API - Authentication', () => {
     expect(profile).toHaveProperty('email');
     expect(profile.email).toBe('john@mail.com');
   });
+});
 
+test.describe('EscuelaJS API - Auth negative cases', () => {
   test('GET profile fails without token', async ({ request }) => {
     const resp = await request.get(`${BASE_URL}/auth/profile`);
     expect([401, 403]).toContain(resp.status());
@@ -83,9 +85,11 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     expect(cat.id).toBe(categoryId);
     expect(cat).toHaveProperty('name');
   });
-    test('PUT update category fully', async ({ request }) => {
-    const updated = { name: `Updated Category Name ${Date.now()}`,
-     image: `https://placeimg.com/640/480/tech/any?t=${Date.now()}` };
+  test('PUT update category fully', async ({ request }) => {
+    const updated = {
+      name: `Updated Category Name ${Date.now()}`,
+      image: `https://placeimg.com/640/480/tech/any?t=${Date.now()}`,
+    };
     const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: updated,
     });
@@ -95,7 +99,7 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     expect(body.image).toBe(updated.image);
   });
 
-    test('PUT partially update category', async ({ request }) => {
+  test('PUT partially update category', async ({ request }) => {
     const patchData = { name: `Partially Updated Name ${Date.now()}` };
     const resp = await request.put(`${BASE_URL}/categories/${createdId}`, {
       data: patchData,
@@ -105,9 +109,8 @@ test.describe.serial('EscuelaJS API - Category CRUD', () => {
     expect(body.name).toBe(patchData.name);
   });
 
-    test('DELETE category', async ({ request }) => {
-    const resp = await request.delete(`${BASE_URL}/categories/${createdId}`, {
-    });
+  test('DELETE category', async ({ request }) => {
+    const resp = await request.delete(`${BASE_URL}/categories/${createdId}`, {});
     // EscuelaJS returns 200 with deleted object
     expect(resp.ok()).toBeTruthy();
     const body = await resp.json();
