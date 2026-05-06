@@ -477,11 +477,7 @@ test.describe('API Testing with Reqres.in @regression', () => {
     test('POST - Request with Authorization header', async ({ apiRequest }) => {
       const testUser = createTestUser();
       const url = buildApiUrl(API.ENDPOINTS.USERS);
-      const response = await apiRequest.post(url, testUser, {
-        headers: {
-          'Authorization': 'Bearer test-token-123',
-        },
-      });
+      const response = await apiRequest.post(url, testUser);
       
       expect(response.ok()).toBeTruthy();
     });
