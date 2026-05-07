@@ -1,21 +1,6 @@
-// api5.spec.ts – Playwright API tests for Restful Booker (https://restful-booker.herokuapp.com)
-// This spec demonstrates:
-// 1. Authenticating via POST /auth and obtaining a JWT token.
-// 2. Converting the token to Base64 and using it as a Basic auth header.
-// 3. Creating a booking, updating it, and verifying the changes.
-// 4. Basic sanity checks for GET endpoints.
-
 import { test, expect } from '@playwright/test';
 import { API5 } from './utils/api5.constants';
-import { Basic_TOKEN_PREFIX, validateAuthTokenResponse, validateResourceStructure } from './utils/api-test.helpers';
-
-/**
- * Helper to encode a string to Base64 using Node's Buffer (works in Playwright's test runner).
- */
-function toBase64(value: string): string {
-  return Buffer.from(value).toString('base64');
-}
-
+import { validateAuthTokenResponse, validateResourceStructure } from './utils/api-test.helpers';
 import { sampleBooking } from './api5-test-data';
 
 
