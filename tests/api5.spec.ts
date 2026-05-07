@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { API5 } from './utils/api5.constants';
-import { validateAuthTokenResponse, validateResourceStructure } from './utils/api-test.helpers';
+import { tokenPrefix, validateAuthTokenResponse, validateResourceStructure } from './utils/api-test.helpers';
 import { sampleBooking } from './api5-test-data';
 
 
@@ -66,6 +66,45 @@ test.describe.serial('Restful Booker API – Booking CRUD (Basic auth)', () => {
     const booking = await resp.json();
     expect(booking.firstname).toBe('Jane');
     expect(booking.totalprice).toBe(200);
+  });
+
+  test('Partially update the booking using PATCH', async ({ request }) => {
+    const patchPayload = { firstname: 'James', additionalneeds: 'Breakfast' };
+    const resp = await request.patch(
+      `${API5.BASE_URL}${API5.ENDPOINTS.BOOKING}/${createdBookingId}`,
+      {
+        data: patchPayload,
+        headers: {
+          Cookie: `${tokenPrefix}${token}`,
+        },
+      },
+    );
+    // Successful patch returns 200 and the updated booking object.
+    expect(resp.status()).toBe(200);
+    const body = await resp.json();
+    expect(body.firstname).toBe(patchPayload.firstname);
+    expect(body.additionalneeds).toBe(patchPayload.additionalneeds);
+    // Ensure the other properties from previous updates remain intact
+    expect(body.totalprice).toBe(200);
+  });
+
+  test('Delete the booking', async ({ request }) => {
+    const resp = await request.delete(
+      `${API5.BASE_URL}${API5.ENDPOINTS.BOOKING}/${createdBookingId}`,
+      {
+        headers: {
+          Cookie: `${tokenPrefix}${token}`,
+        },
+      },
+    );
+    // Successful deletion in Restful Booker returns 201 Created
+    expect(resp.status()).toBe(201);
+
+    // Verify it's actually deleted
+    const getResp = await request.get(
+      `${API5.BASE_URL}${API5.ENDPOINTS.BOOKING}/${createdBookingId}`,
+    );
+    expect(getResp.status()).toBe(404);
   });
 });
 

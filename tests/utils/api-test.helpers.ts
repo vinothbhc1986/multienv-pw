@@ -15,6 +15,7 @@ export const isJwt = (token: string): boolean => {
   return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token);
 };
 
+export const tokenPrefix = 'token=' 
 export const BEARER_TOKEN_PREFIX = 'Bearer ';
 /**
  * Build a complete API URL with optional ID and query parameters
