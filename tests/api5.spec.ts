@@ -47,7 +47,7 @@ test.describe.serial('Restful Booker API – Booking CRUD (Basic auth)', () => {
       {
         data: updatedPayload,
         headers: {
-          Cookie: `token=${token}`,
+          Cookie: `${tokenPrefix}${token}`,
         },
       },
     );
@@ -69,7 +69,7 @@ test.describe.serial('Restful Booker API – Booking CRUD (Basic auth)', () => {
   });
 
   test('Partially update the booking using PATCH', async ({ request }) => {
-    const patchPayload = { firstname: 'James', additionalneeds: 'Breakfast' };
+    const patchPayload = { firstname: 'James', additionalneeds: 'Dinner' };
     const resp = await request.patch(
       `${API5.BASE_URL}${API5.ENDPOINTS.BOOKING}/${createdBookingId}`,
       {
