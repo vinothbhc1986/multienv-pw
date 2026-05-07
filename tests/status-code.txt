@@ -15,13 +15,7 @@
 
 500 - INTERNAL SERVER ERROR  -- when server is not able to process the request. Backend or DB issue
 
-how to check 301 REDIRECT with developer tools in browser?
-   1. Open Developer Tools (F12).
-   2. Go to the Network tab.
-   3. Type your domain in the address bar and press Enter.
-   4. Look for the first request. If it has a 301 status, it’s a redirect.
 
-   any example domain for 301 REDIRECT?
    
    https://web.archive.org/ (https://web.archive.org/ -> https://web.archive.org/about/ )
 
