@@ -1,0 +1,29 @@
+200 - OK  
+201 - CREATED  ----New entity is created
+204 - NO CONTENT  --Response body is empty when we update or delete something
+
+301 - PERMANENT REDIRECT - URL has been changed permanently  http://google.com   https://httpbin.org/redirect-to?url=https://example.com&status_code=301
+
+
+302 - TEMPORARY REDIRECT - URL has been changed temporarily  https://httpbin.org/redirect/1
+
+400 - BAD REQUEST   ---Invalid data in the Request body
+401 - UNAUTHORISED  -- when we don't have access to use the API (i.e. invalid username and password)
+403 - FORBIDDEN  -- when we have access to use the API but we are not allowed to use it spefic resource or action. 
+                    It requires special access or permission
+404 - PAGE NOT FOUND  -- Resource is not available or endpoint doesn't exist
+
+500 - INTERNAL SERVER ERROR  -- when server is not able to process the request. Backend or DB issue
+
+how to check 301 REDIRECT with developer tools in browser?
+   1. Open Developer Tools (F12).
+   2. Go to the Network tab.
+   3. Type your domain in the address bar and press Enter.
+   4. Look for the first request. If it has a 301 status, it’s a redirect.
+
+   any example domain for 301 REDIRECT?
+   
+   https://web.archive.org/ (https://web.archive.org/ -> https://web.archive.org/about/ )
+
+   
+   

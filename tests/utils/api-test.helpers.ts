@@ -72,11 +72,12 @@ export const validateEmailFormat = (email: string): boolean => {
  */
 export const validateResourceStructure = (data: any): boolean => {
   return (
-    typeof data.id === 'number' &&
-    typeof data.name === 'string' &&
-    typeof data.year === 'number' &&
-    typeof data.color === 'string' &&
-    typeof data.pantone_value === 'string'
+    typeof data.firstname === 'string' &&
+    typeof data.lastname === 'string' &&
+    typeof data.totalprice === 'number' &&
+    typeof data.depositpaid === 'boolean' &&
+    typeof data.bookingdates.checkin === 'string' &&
+    typeof data.bookingdates.checkout === 'string'
   );
 };
 
