@@ -906,4 +906,3 @@ test.describe('API Testing with JSONPlaceholder @regression', () => {
     expect(Array.isArray(responseBody)).toBeTruthy();
     expect(responseBody.length).toBe(0);
   });
-});

@@ -1,4 +1,5 @@
-import { test, expect } from './fixtures/base';
+import { test } from './fixtures/base';
+import { expect } from '@playwright/test';
 
 test.describe('SauceDemo - Network Interception', () => {
   test('should handle blocked imagery gracefully by simulating 500 Network errors', async ({ page, inventoryPage }) => {
@@ -27,5 +28,22 @@ test.describe('SauceDemo - Network Interception', () => {
 
      await inventoryPage.goto();
      await inventoryPage.isLoaded();
+  });
+
+  test('should remain usable when multiple static asset types fail to load', async ({ page, inventoryPage }) => {
+    await page.route('**/*', async route => {
+      const request = route.request();
+      const resourceType = request.resourceType();
+      if (['image', 'font', 'stylesheet'].includes(resourceType)) {
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await inventoryPage.goto();
+    await inventoryPage.isLoaded();
+    await expect(page.locator('.inventory_item')).toHaveCount(6);
+    await expect(page).toHaveURL(/inventory\.html$/);
   });
 });

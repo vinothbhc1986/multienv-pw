@@ -34,6 +34,22 @@ test.describe('SauceDemo - Auth & Route Protection @regression', () => {
     await expect(page).not.toHaveURL(/inventory\.html$/);
   });
 
+  test('[TC-42] should not allow revisiting inventory via browser back after logout', async ({
+    page,
+    inventoryPage,
+    loginPage,
+  }) => {
+    await inventoryPage.goto();
+    await inventoryPage.isLoaded();
+
+    await inventoryPage.header.logout();
+    await loginPage.isLoaded();
+
+    await page.goBack();
+    await loginPage.isLoaded();
+    await expect(page).not.toHaveURL(/inventory\.html$/);
+  });
+
   test('[TC-27] should require login if auth cookies are cleared mid-session', async ({
     page,
     inventoryPage,

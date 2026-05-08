@@ -176,6 +176,27 @@ test.describe('SauceDemo - Purchase Flow (Authenticated) @regression', () => {
     await inventoryPage.isLoaded();
     await inventoryPage.expectUrl();
   });
+
+  test('[TC-44] should keep checkout completion idempotent on rapid Finish double click', async ({
+    page,
+    inventoryPage,
+    cartPage,
+    checkoutPage,
+  }) => {
+    await inventoryPage.addProductToCart(backpack);
+    await inventoryPage.goToCart();
+    await cartPage.proceedToCheckout();
+
+    await checkoutPage.fillDetails(defaultProfile.firstName, defaultProfile.lastName, defaultProfile.postalCode);
+    await checkoutPage.clickContinue();
+
+    const finishButton = page.getByRole('button', { name: /finish/i });
+    await finishButton.dblclick();
+
+    await expect(page.getByText('Thank you for your order!')).toBeVisible();
+    await expect(page).toHaveURL(/checkout-complete\.html$/);
+    await expect(page.getByText('Thank you for your order!')).toHaveCount(1);
+  });
 });
 
 test.describe('SauceDemo - Cart Persistence @regression', () => {

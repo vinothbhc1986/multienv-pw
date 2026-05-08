@@ -47,6 +47,15 @@ test.describe('EscuelaJS API - Auth negative cases', () => {
     const resp = await request.get(`${API4.BASE_URL}${API4.ENDPOINTS.PROFILE}`);
     expect([401, 403]).toContain(resp.status());
   });
+
+  test('GET profile fails with malformed bearer token', async ({ request }) => {
+    const resp = await request.get(`${API4.BASE_URL}${API4.ENDPOINTS.PROFILE}`, {
+      headers: {
+        Authorization: `${BEARER_TOKEN_PREFIX} malformed.token.value`,
+      },
+    });
+    expect([401, 403]).toContain(resp.status());
+  });
 });
 
 test.describe.serial('EscuelaJS API - Category CRUD', () => {

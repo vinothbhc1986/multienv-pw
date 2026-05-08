@@ -13,6 +13,8 @@
                     It requires special access or permission
 404 - PAGE NOT FOUND  -- Resource is not available or endpoint doesn't exist
 
+429 - Too Many Requests client error response status code indicates the client has sent too many requests in a given amount of time
+
 500 - INTERNAL SERVER ERROR  -- when server is not able to process the request. Backend or DB issue
 
 
