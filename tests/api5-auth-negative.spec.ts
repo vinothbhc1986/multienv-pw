@@ -46,7 +46,7 @@ test.describe.serial('Restful Booker API - Authentication negative tests', () =>
     const createResp = await request.post(`${API5.BASE_URL}${API5.ENDPOINTS.BOOKING}`, {
       data: sampleBooking,
     });
-    expect(createResp.ok()).toBeTruthy()
+    expect(createResp.ok()).toBeTruthy();
     const createBody = await createResp.json();
     const bookingId = createBody.bookingid as number;
 
@@ -104,8 +104,7 @@ test.describe.serial('Restful Booker API - Authentication negative tests', () =>
         totalprice: 'not-a-number',
       },
     });
-    console.log('resp', resp.status());
-    expect([500]).toContain(resp.status());
+    expect(500).toBe(resp.status());
   });
 
   test('Non-existing endpoint returns 404', async ({ request }) => {

@@ -12,7 +12,6 @@ test.describe('SauceDemo - Reset App State', () => {
         await inventoryPage.isLoaded();
 
     const product = testData.products.backpack;
-    console.log('produc ', product)
     await inventoryPage.addProductToCart(product);
     await inventoryPage.expectCartBadgeCount('1');
     await inventoryPage.expectRemoveButtonVisible(product);
