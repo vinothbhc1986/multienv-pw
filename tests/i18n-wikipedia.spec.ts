@@ -60,7 +60,7 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
   test('English article contains specific translated words', async ({ page }) => {
     const wikiPage = new WikiPage(page);
     await wikiPage.gotoArticle(EN);
-    
+
     await expect(wikiPage.contentText).toContainText(EN.sampleWords.animal);
     await expect(wikiPage.contentText).toContainText(EN.sampleWords.mammal);
     await expect(wikiPage.contentText).toContainText(EN.sampleWords.species);
@@ -70,7 +70,7 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
   test('French article contains specific translated words', async ({ page }) => {
     const wikiPage = new WikiPage(page);
     await wikiPage.gotoArticle(FR);
-    
+
     await expect(wikiPage.contentText).toContainText(FR.sampleWords.animal);
     await expect(wikiPage.contentText).toContainText(FR.sampleWords.mammal);
     await expect(wikiPage.contentText).toContainText(FR.sampleWords.species);
@@ -80,7 +80,7 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
   test('German article contains specific translated words', async ({ page }) => {
     const wikiPage = new WikiPage(page);
     await wikiPage.gotoArticle(DE);
-    
+
     await expect(wikiPage.contentText).toContainText(DE.sampleWords.animal);
     await expect(wikiPage.contentText).toContainText(DE.sampleWords.mammal);
     await expect(wikiPage.contentText).toContainText(DE.sampleWords.species);
