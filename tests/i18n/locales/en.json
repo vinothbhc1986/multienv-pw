@@ -6,6 +6,7 @@
   "portalLanguageLinkRegex": "^English\\b",
   "languageSwitcherButtonRegex": "article in another language",
   "frInterlanguageLinkRegex": "^Français\\b",
+  "deInterlanguageLinkRegex": "^Deutsch\\b",
   "searchPlaceholder": "Search Wikipedia",
   "siteNameInTitle": "Wikipedia",
   "tableOfContentsLabel": "Contents",

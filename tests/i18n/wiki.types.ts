@@ -18,6 +18,7 @@ export type WikiLocaleStrings = {
   portalLanguageLinkRegex: string;
   languageSwitcherButtonRegex?: string;
   frInterlanguageLinkRegex?: string;
+  deInterlanguageLinkRegex?: string;
   searchPlaceholder: string;
   siteNameInTitle: string;
   tableOfContentsLabel: string;

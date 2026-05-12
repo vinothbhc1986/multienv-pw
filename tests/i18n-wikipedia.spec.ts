@@ -16,6 +16,8 @@ const EN = en as WikiLocaleStrings;
 const FR = fr as WikiLocaleStrings;
 const DE = de as WikiLocaleStrings;
 
+import { WIKIPEDIA_PORTAL_URL } from './i18n/wiki.constants';
+
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Wikipedia – locale-specific content & language switching @i18n', () => {
@@ -102,6 +104,23 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
     await expect(page.getByRole('heading', { level: 1, name: FR.catHeading })).toBeVisible();
   });
 
+  test('User can switch from English to German via language menu (Vector 2022)', async ({ page }) => {
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(EN);
+
+    const btnPattern = EN.languageSwitcherButtonRegex!;
+    const dePattern = EN.deInterlanguageLinkRegex!;
+    await page.getByRole('button', { name: new RegExp(btnPattern, 'i') }).click();
+    const german = page.getByRole('link', { name: new RegExp(dePattern, 'i') }).first();
+    await expect(german).toBeVisible();
+    await german.click();
+
+    await expect(page).toHaveURL(new RegExp(DE.wikiHost.replace(/\./g, '\\.')));
+    await expect(wikiPage.htmlElement).toHaveAttribute('lang', new RegExp(`^${DE.htmlLangPrefix}`));
+    await expect(page).toHaveTitle(WikiPage.regexLiteral(DE.siteNameInTitle));
+    await expect(page.getByRole('heading', { level: 1, name: DE.catHeading })).toBeVisible();
+  });
+
   test('Browser locale surfaces matching language entry on Wikipedia portal', async ({ browser }) => {
     const enContext = await browser.newContext({
       locale: 'en-US',
@@ -111,17 +130,27 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
       locale: 'de-DE',
       storageState: { cookies: [], origins: [] },
     });
+    const frContext = await browser.newContext({
+      locale: 'fr-FR',
+      storageState: { cookies: [], origins: [] },
+    });
 
     const enPage = await enContext.newPage();
-    await enPage.goto('https://www.wikipedia.org/', { waitUntil: 'domcontentloaded' });
+    await enPage.goto(WIKIPEDIA_PORTAL_URL, { waitUntil: 'domcontentloaded' });
     await expect(enPage.getByRole('link', { name: new RegExp(EN.portalLanguageLinkRegex) })).toBeVisible();
     await expect(enPage.getByText(EN.portalTagline)).toBeVisible();
     await enContext.close();
 
     const dePage = await deContext.newPage();
-    await dePage.goto('https://www.wikipedia.org/', { waitUntil: 'domcontentloaded' });
+    await dePage.goto(WIKIPEDIA_PORTAL_URL, { waitUntil: 'domcontentloaded' });
     await expect(dePage.getByRole('link', { name: new RegExp(DE.portalLanguageLinkRegex) })).toBeVisible();
     await expect(dePage.getByText(DE.portalTagline)).toBeVisible();
     await deContext.close();
+
+    const frPage = await frContext.newPage();
+    await frPage.goto(WIKIPEDIA_PORTAL_URL, { waitUntil: 'domcontentloaded' });
+    await expect(frPage.getByRole('link', { name: new RegExp(FR.portalLanguageLinkRegex) })).toBeVisible();
+    await expect(frPage.getByText(FR.portalTagline)).toBeVisible();
+    await frContext.close();
   });
 });
