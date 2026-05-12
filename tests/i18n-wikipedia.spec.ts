@@ -9,117 +9,85 @@ import de from './i18n/locales/de.json';
 import en from './i18n/locales/en.json';
 import fr from './i18n/locales/fr.json';
 
-type SampleWords = {
-  animal: string;
-  relatedFamily: string;
-  kingdom: string;
-  commonTrait: string;
-  mammal: string;
-  species: string;
-  history: string;
-  /** Substring expected in `#mw-content-text` (taxon / section title; locale-specific). */
-  mainArticleNeedle: string;
-};
-
-type WikiLocaleStrings = {
-  htmlLangPrefix: string;
-  wikiHost: string;
-  catArticlePath: string;
-  catHeading: string;
-  portalLanguageLinkRegex: string;
-  languageSwitcherButtonRegex?: string;
-  frInterlanguageLinkRegex?: string;
-  searchPlaceholder: string;
-  siteNameInTitle: string;
-  tableOfContentsLabel: string;
-  portalTagline: string;
-  sampleWords: SampleWords;
-};
+import { WikiPage } from './i18n/wiki-page';
+import type { WikiLocaleStrings } from './i18n/wiki.types';
 
 const EN = en as WikiLocaleStrings;
 const FR = fr as WikiLocaleStrings;
 const DE = de as WikiLocaleStrings;
 
-function regexLiteral(s: string): RegExp {
-  return new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-}
-
-/** Primary header search (Vector may also render a sticky duplicate with the same classes). */
-function primarySearchInput(page: Page) {
-  return page.locator('form#searchform input[name="search"], input#searchInput').first();
-}
-
-async function expectLocalizedSearchPlaceholder(page: Page, placeholder: string) {
-  const input = primarySearchInput(page);
-  await input.waitFor({ state: 'visible' });
-  await expect(input).toHaveAttribute('placeholder', placeholder);
-}
-
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Wikipedia – locale-specific content & language switching @i18n', () => {
   test('English article exposes html lang and localized title', async ({ page }) => {
-    await page.goto(`https://${EN.wikiHost}${EN.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(EN);
 
-    await expect(page.locator('html')).toHaveAttribute('lang', new RegExp(`^${EN.htmlLangPrefix}`));
-    await expect(page).toHaveTitle(regexLiteral(EN.siteNameInTitle));
+    await expect(wikiPage.htmlElement).toHaveAttribute('lang', new RegExp(`^${EN.htmlLangPrefix}`));
+    await expect(page).toHaveTitle(WikiPage.regexLiteral(EN.siteNameInTitle));
     await expect(page.getByRole('heading', { level: 1, name: EN.catHeading })).toBeVisible();
-    await expectLocalizedSearchPlaceholder(page, EN.searchPlaceholder);
-    await expect(page.locator('#vector-toc')).toContainText(EN.tableOfContentsLabel);
-    await expect(page.locator('#mw-content-text')).toContainText(EN.sampleWords.mainArticleNeedle);
+    await wikiPage.expectLocalizedSearchPlaceholder(EN.searchPlaceholder);
+    await expect(wikiPage.tableOfContents).toContainText(EN.tableOfContentsLabel);
+    await expect(wikiPage.contentText).toContainText(EN.sampleWords.mainArticleNeedle);
   });
 
   test('French article shows different slug, lang, and primary heading', async ({ page }) => {
-    await page.goto(`https://${FR.wikiHost}${FR.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(FR);
 
-    await expect(page.locator('html')).toHaveAttribute('lang', new RegExp(`^${FR.htmlLangPrefix}`));
-    await expect(page).toHaveTitle(regexLiteral(FR.siteNameInTitle));
+    await expect(wikiPage.htmlElement).toHaveAttribute('lang', new RegExp(`^${FR.htmlLangPrefix}`));
+    await expect(page).toHaveTitle(WikiPage.regexLiteral(FR.siteNameInTitle));
     await expect(page.getByRole('heading', { level: 1, name: FR.catHeading })).toBeVisible();
-    await expectLocalizedSearchPlaceholder(page, FR.searchPlaceholder);
-    await expect(page.locator('#vector-toc')).toContainText(FR.tableOfContentsLabel);
-    await expect(page.locator('#mw-content-text')).toContainText(FR.sampleWords.mainArticleNeedle);
+    await wikiPage.expectLocalizedSearchPlaceholder(FR.searchPlaceholder);
+    await expect(wikiPage.tableOfContents).toContainText(FR.tableOfContentsLabel);
+    await expect(wikiPage.contentText).toContainText(FR.sampleWords.mainArticleNeedle);
   });
 
   test('German article uses localized title and lang', async ({ page }) => {
-    await page.goto(`https://${DE.wikiHost}${DE.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(DE);
 
-    await expect(page.locator('html')).toHaveAttribute('lang', new RegExp(`^${DE.htmlLangPrefix}`));
-    await expect(page).toHaveTitle(regexLiteral(DE.siteNameInTitle));
+    await expect(wikiPage.htmlElement).toHaveAttribute('lang', new RegExp(`^${DE.htmlLangPrefix}`));
+    await expect(page).toHaveTitle(WikiPage.regexLiteral(DE.siteNameInTitle));
     await expect(page.getByRole('heading', { level: 1, name: DE.catHeading })).toBeVisible();
-    await expectLocalizedSearchPlaceholder(page, DE.searchPlaceholder);
-    await expect(page.locator('#vector-toc')).toContainText(DE.tableOfContentsLabel);
-    await expect(page.locator('#mw-content-text')).toContainText(DE.sampleWords.mainArticleNeedle);
+    await wikiPage.expectLocalizedSearchPlaceholder(DE.searchPlaceholder);
+    await expect(wikiPage.tableOfContents).toContainText(DE.tableOfContentsLabel);
+    await expect(wikiPage.contentText).toContainText(DE.sampleWords.mainArticleNeedle);
   });
 
   test('English article contains specific translated words', async ({ page }) => {
-    await page.goto(`https://${EN.wikiHost}${EN.catArticlePath}`, { waitUntil: 'domcontentloaded' });
-    const content = page.locator('#mw-content-text');
-    await expect(content).toContainText(EN.sampleWords.animal);
-    await expect(content).toContainText(EN.sampleWords.mammal);
-    await expect(content).toContainText(EN.sampleWords.species);
-    await expect(content).toContainText(EN.sampleWords.history);
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(EN);
+    
+    await expect(wikiPage.contentText).toContainText(EN.sampleWords.animal);
+    await expect(wikiPage.contentText).toContainText(EN.sampleWords.mammal);
+    await expect(wikiPage.contentText).toContainText(EN.sampleWords.species);
+    await expect(wikiPage.contentText).toContainText(EN.sampleWords.history);
   });
 
   test('French article contains specific translated words', async ({ page }) => {
-    await page.goto(`https://${FR.wikiHost}${FR.catArticlePath}`, { waitUntil: 'domcontentloaded' });
-    const content = page.locator('#mw-content-text');
-    await expect(content).toContainText(FR.sampleWords.animal);
-    await expect(content).toContainText(FR.sampleWords.mammal);
-    await expect(content).toContainText(FR.sampleWords.species);
-    await expect(content).toContainText(FR.sampleWords.history);
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(FR);
+    
+    await expect(wikiPage.contentText).toContainText(FR.sampleWords.animal);
+    await expect(wikiPage.contentText).toContainText(FR.sampleWords.mammal);
+    await expect(wikiPage.contentText).toContainText(FR.sampleWords.species);
+    await expect(wikiPage.contentText).toContainText(FR.sampleWords.history);
   });
 
   test('German article contains specific translated words', async ({ page }) => {
-    await page.goto(`https://${DE.wikiHost}${DE.catArticlePath}`, { waitUntil: 'domcontentloaded' });
-    const content = page.locator('#mw-content-text');
-    await expect(content).toContainText(DE.sampleWords.animal);
-    await expect(content).toContainText(DE.sampleWords.mammal);
-    await expect(content).toContainText(DE.sampleWords.species);
-    await expect(content).toContainText(DE.sampleWords.history);
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(DE);
+    
+    await expect(wikiPage.contentText).toContainText(DE.sampleWords.animal);
+    await expect(wikiPage.contentText).toContainText(DE.sampleWords.mammal);
+    await expect(wikiPage.contentText).toContainText(DE.sampleWords.species);
+    await expect(wikiPage.contentText).toContainText(DE.sampleWords.history);
   });
 
   test('User can switch from English to French via language menu (Vector 2022)', async ({ page }) => {
-    await page.goto(`https://${EN.wikiHost}${EN.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const wikiPage = new WikiPage(page);
+    await wikiPage.gotoArticle(EN);
 
     const btnPattern = EN.languageSwitcherButtonRegex!;
     const frPattern = EN.frInterlanguageLinkRegex!;
@@ -129,8 +97,8 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
     await french.click();
 
     await expect(page).toHaveURL(new RegExp(FR.wikiHost.replace(/\./g, '\\.')));
-    await expect(page.locator('html')).toHaveAttribute('lang', new RegExp(`^${FR.htmlLangPrefix}`));
-    await expect(page).toHaveTitle(regexLiteral(FR.siteNameInTitle));
+    await expect(wikiPage.htmlElement).toHaveAttribute('lang', new RegExp(`^${FR.htmlLangPrefix}`));
+    await expect(page).toHaveTitle(WikiPage.regexLiteral(FR.siteNameInTitle));
     await expect(page.getByRole('heading', { level: 1, name: FR.catHeading })).toBeVisible();
   });
 
