@@ -14,6 +14,9 @@ type SampleWords = {
   relatedFamily: string;
   kingdom: string;
   commonTrait: string;
+  mammal: string;
+  species: string;
+  history: string;
   /** Substring expected in `#mw-content-text` (taxon / section title; locale-specific). */
   mainArticleNeedle: string;
 };
@@ -86,6 +89,33 @@ test.describe('Wikipedia – locale-specific content & language switching @i18n'
     await expectLocalizedSearchPlaceholder(page, DE.searchPlaceholder);
     await expect(page.locator('#vector-toc')).toContainText(DE.tableOfContentsLabel);
     await expect(page.locator('#mw-content-text')).toContainText(DE.sampleWords.mainArticleNeedle);
+  });
+
+  test('English article contains specific translated words', async ({ page }) => {
+    await page.goto(`https://${EN.wikiHost}${EN.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const content = page.locator('#mw-content-text');
+    await expect(content).toContainText(EN.sampleWords.animal);
+    await expect(content).toContainText(EN.sampleWords.mammal);
+    await expect(content).toContainText(EN.sampleWords.species);
+    await expect(content).toContainText(EN.sampleWords.history);
+  });
+
+  test('French article contains specific translated words', async ({ page }) => {
+    await page.goto(`https://${FR.wikiHost}${FR.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const content = page.locator('#mw-content-text');
+    await expect(content).toContainText(FR.sampleWords.animal);
+    await expect(content).toContainText(FR.sampleWords.mammal);
+    await expect(content).toContainText(FR.sampleWords.species);
+    await expect(content).toContainText(FR.sampleWords.history);
+  });
+
+  test('German article contains specific translated words', async ({ page }) => {
+    await page.goto(`https://${DE.wikiHost}${DE.catArticlePath}`, { waitUntil: 'domcontentloaded' });
+    const content = page.locator('#mw-content-text');
+    await expect(content).toContainText(DE.sampleWords.animal);
+    await expect(content).toContainText(DE.sampleWords.mammal);
+    await expect(content).toContainText(DE.sampleWords.species);
+    await expect(content).toContainText(DE.sampleWords.history);
   });
 
   test('User can switch from English to French via language menu (Vector 2022)', async ({ page }) => {

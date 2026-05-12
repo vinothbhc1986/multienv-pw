@@ -13,6 +13,9 @@
     "relatedFamily": "Katzen",
     "kingdom": "Animalia",
     "commonTrait": "Fleischfresser",
+    "mammal": "Säugetier",
+    "species": "Art",
+    "history": "Geschichte",
     "mainArticleNeedle": "Systematik"
   }
 }
