@@ -1,0 +1,20 @@
+{
+  "htmlLangPrefix": "en",
+  "wikiHost": "en.wikipedia.org",
+  "catArticlePath": "/wiki/Cat",
+  "catHeading": "Cat",
+  "portalLanguageLinkRegex": "^English\\b",
+  "languageSwitcherButtonRegex": "article in another language",
+  "frInterlanguageLinkRegex": "^Français\\b",
+  "searchPlaceholder": "Search Wikipedia",
+  "siteNameInTitle": "Wikipedia",
+  "tableOfContentsLabel": "Contents",
+  "portalTagline": "The Free Encyclopedia",
+  "sampleWords": {
+    "animal": "cat",
+    "relatedFamily": "Felidae",
+    "kingdom": "Animalia",
+    "commonTrait": "carnivorous",
+    "mainArticleNeedle": "Animalia"
+  }
+}

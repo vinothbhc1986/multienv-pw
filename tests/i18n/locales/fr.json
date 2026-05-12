@@ -1,0 +1,18 @@
+{
+  "htmlLangPrefix": "fr",
+  "wikiHost": "fr.wikipedia.org",
+  "catArticlePath": "/wiki/Chat",
+  "catHeading": "Chat",
+  "portalLanguageLinkRegex": "^Français\\b",
+  "searchPlaceholder": "Rechercher sur Wikipédia",
+  "siteNameInTitle": "Wikipédia",
+  "tableOfContentsLabel": "Sommaire",
+  "portalTagline": "L'encyclopédie libre",
+  "sampleWords": {
+    "animal": "chat",
+    "relatedFamily": "félidés",
+    "kingdom": "Animalia",
+    "commonTrait": "carnivore",
+    "mainArticleNeedle": "Animalia"
+  }
+}

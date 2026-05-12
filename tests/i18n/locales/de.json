@@ -1,0 +1,18 @@
+{
+  "htmlLangPrefix": "de",
+  "wikiHost": "de.wikipedia.org",
+  "catArticlePath": "/wiki/Hauskatze",
+  "catHeading": "Hauskatze",
+  "portalLanguageLinkRegex": "^Deutsch\\b",
+  "searchPlaceholder": "Wikipedia durchsuchen",
+  "siteNameInTitle": "Wikipedia",
+  "tableOfContentsLabel": "Inhaltsverzeichnis",
+  "portalTagline": "Die freie Enzyklopädie",
+  "sampleWords": {
+    "animal": "Katze",
+    "relatedFamily": "Katzen",
+    "kingdom": "Animalia",
+    "commonTrait": "Fleischfresser",
+    "mainArticleNeedle": "Systematik"
+  }
+}
