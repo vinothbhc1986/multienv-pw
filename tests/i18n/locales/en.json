@@ -15,6 +15,9 @@
     "relatedFamily": "Felidae",
     "kingdom": "Animalia",
     "commonTrait": "carnivorous",
+    "mammal": "mammal",
+    "species": "species",
+    "history": "History",
     "mainArticleNeedle": "Animalia"
   }
 }
